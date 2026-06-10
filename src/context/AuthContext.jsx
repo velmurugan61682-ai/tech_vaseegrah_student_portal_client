@@ -87,9 +87,13 @@ export const AuthProvider = ({ children }) => {
   // Socket connection side-effect
   useEffect(() => {
     if (user) {
-      console.log(`🔌 Initializing socket client connection to: ${API_BASE_URL}`);
-      const newSocket = io(API_BASE_URL, {
-        transports: ['websocket', 'polling']
+      const socketURL = API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+      console.log(`🔌 Initializing socket client connection to: ${socketURL}`);
+      const newSocket = io(socketURL, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000
       });
 
       setSocket(newSocket);
