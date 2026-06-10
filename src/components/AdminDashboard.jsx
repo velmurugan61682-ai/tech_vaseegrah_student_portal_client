@@ -4,7 +4,7 @@ import * as adminService from '../services/adminService';
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  AreaChart, Area 
+  AreaChart, Area, LineChart, Line 
 } from 'recharts';
 
 // Colors for Pie/Donut charts
@@ -25,14 +25,25 @@ export default function AdminDashboard() {
     absentToday: 0,
     activeTasks: 0,
     completedTasks: 0,
-    internshipProgress: 100
+    internshipProgress: 100,
+    totalPayments: 0,
+    paidAmount: 0,
+    pendingAmount: 0,
+    monthlyRevenue: 0,
+    onlinePayments: 0,
+    offlinePayments: 0,
+    paymentSuccessRate: 100
   });
 
   const [chartsData, setChartsData] = useState({
     studentsByCourse: [],
     studentsByBranch: [],
     attendanceAnalytics: [],
-    taskAnalytics: []
+    taskAnalytics: [],
+    monthlyRevenue: [],
+    paymentStatusPie: [],
+    internshipWiseRevenue: [],
+    studentPaymentTrends: []
   });
 
   const [todayAttendanceList, setTodayAttendanceList] = useState([]);
@@ -49,7 +60,14 @@ export default function AdminDashboard() {
           absentToday: data.stats.absentToday || 0,
           activeTasks: data.stats.activeTasks || 0,
           completedTasks: data.stats.completedTasks || 0,
-          internshipProgress: data.stats.internshipProgress || 0
+          internshipProgress: data.stats.internshipProgress || 0,
+          totalPayments: data.stats.totalPayments || 0,
+          paidAmount: data.stats.paidAmount || 0,
+          pendingAmount: data.stats.pendingAmount || 0,
+          monthlyRevenue: data.stats.monthlyRevenue || 0,
+          onlinePayments: data.stats.onlinePayments || 0,
+          offlinePayments: data.stats.offlinePayments || 0,
+          paymentSuccessRate: data.stats.paymentSuccessRate || 100
         });
 
         setTodayAttendanceList(data.todayAttendanceList || []);
@@ -60,7 +78,11 @@ export default function AdminDashboard() {
           studentsByCourse: charts.studentsByCourse || [],
           studentsByBranch: charts.studentsByBranch || [],
           attendanceAnalytics: charts.attendanceAnalytics || [],
-          taskAnalytics: charts.taskAnalytics || []
+          taskAnalytics: charts.taskAnalytics || [],
+          monthlyRevenue: charts.monthlyRevenue || [],
+          paymentStatusPie: charts.paymentStatusPie || [],
+          internshipWiseRevenue: charts.internshipWiseRevenue || [],
+          studentPaymentTrends: charts.studentPaymentTrends || []
         });
       }
     } catch (error) {
@@ -105,23 +127,49 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <>
-          {/* Numerical metrics cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-            {[
-              { label: 'Total Students', val: stats.totalStudents, color: 'var(--accent-primary)' },
-              { label: 'Present Today', val: stats.presentToday, color: 'var(--color-success)' },
-              { label: 'Absent Today', val: stats.absentToday, color: 'var(--color-danger)' },
-              { label: 'Active Tasks', val: stats.activeTasks, color: 'var(--color-info)' },
-              { label: 'Completed Tasks', val: stats.completedTasks, color: 'var(--color-success)' },
-              { label: 'Internship Progress', val: `${stats.internshipProgress}%`, color: 'var(--accent-secondary)' }
-            ].map((card, idx) => (
-              <div key={idx} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '20px' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500' }}>{card.label}</span>
-                <span style={{ fontSize: '2.2rem', fontWeight: '800', color: card.color }}>
-                  {card.val}
-                </span>
-              </div>
-            ))}
+          {/* Section: Operations Telemetry */}
+          <div>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: 'var(--text-muted)' }}>Operations Overview</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+              {[
+                { label: 'Total Students', val: stats.totalStudents, color: 'var(--accent-primary)' },
+                { label: 'Present Today', val: stats.presentToday, color: 'var(--color-success)' },
+                { label: 'Absent Today', val: stats.absentToday, color: 'var(--color-danger)' },
+                { label: 'Active Tasks', val: stats.activeTasks, color: 'var(--color-info)' },
+                { label: 'Completed Tasks', val: stats.completedTasks, color: 'var(--color-success)' },
+                { label: 'Internship Progress', val: `${stats.internshipProgress}%`, color: 'var(--accent-secondary)' }
+              ].map((card, idx) => (
+                <div key={idx} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '20px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500' }}>{card.label}</span>
+                  <span style={{ fontSize: '2.2rem', fontWeight: '800', color: card.color }}>
+                    {card.val}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Section: Financial Telemetry */}
+          <div>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: 'var(--text-muted)' }}>Payment & Revenue Metrics</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+              {[
+                { label: 'Total Payments', val: stats.totalPayments, color: 'var(--accent-primary)' },
+                { label: 'Paid Amount (Total)', val: `₹${stats.paidAmount?.toLocaleString()}`, color: 'var(--color-success)' },
+                { label: 'Pending Balance Due', val: `₹${stats.pendingAmount?.toLocaleString()}`, color: 'var(--color-warning)' },
+                { label: 'Monthly Revenue', val: `₹${stats.monthlyRevenue?.toLocaleString()}`, color: 'var(--color-info)' },
+                { label: 'Online Payments', val: stats.onlinePayments, color: 'var(--color-success)' },
+                { label: 'Offline Payments', val: stats.offlinePayments, color: 'var(--accent-secondary)' },
+                { label: 'Payment Success Rate', val: `${stats.paymentSuccessRate}%`, color: 'var(--color-info)' }
+              ].map((card, idx) => (
+                <div key={idx} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '20px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500' }}>{card.label}</span>
+                  <span style={{ fontSize: '2.2rem', fontWeight: '800', color: card.color }}>
+                    {card.val}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Charts Row 1: Course (Pie) & Branch (Bar) */}
@@ -261,6 +309,129 @@ export default function AdminDashboard() {
                         itemStyle={{ color: '#fff' }}
                       />
                     </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* New Payment Analytics Charts Row 3: Revenue Bar & Payment Status Pie */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+            
+            {/* Monthly Revenue Chart */}
+            <div className="glass-card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
+                Monthly Revenue Chart (${currentYear})
+              </h3>
+              <div style={{ position: 'relative', width: '100%', height: '260px' }}>
+                {chartsData.monthlyRevenue.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No revenue records found</p>
+                ) : (
+                  <ResponsiveContainer width="99%" height="100%">
+                    <BarChart data={chartsData.monthlyRevenue}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                      <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                      <Tooltip 
+                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                      />
+                      <Bar dataKey="Revenue" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Payment Status Pie Chart */}
+            <div className="glass-card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
+                Payment Status Distribution
+              </h3>
+              <div style={{ position: 'relative', width: '100%', height: '260px' }}>
+                {chartsData.paymentStatusPie.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No transaction history found</p>
+                ) : (
+                  <ResponsiveContainer width="99%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartsData.paymentStatusPie}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={85}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {chartsData.paymentStatusPie.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                        itemStyle={{ color: '#fff' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* New Payment Analytics Charts Row 4: Internship wise Revenue & Payment Trends */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+            
+            {/* Internship Wise Revenue */}
+            <div className="glass-card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
+                Internship Program Revenue Breakdown
+              </h3>
+              <div style={{ position: 'relative', width: '100%', height: '260px' }}>
+                {chartsData.internshipWiseRevenue.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No revenue recorded</p>
+                ) : (
+                  <ResponsiveContainer width="99%" height="100%">
+                    <BarChart data={chartsData.internshipWiseRevenue}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                      <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                      <Tooltip 
+                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                      />
+                      <Bar dataKey="Revenue" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Student Payment Trends */}
+            <div className="glass-card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
+                Student Payment Trends (Recent Approvals)
+              </h3>
+              <div style={{ position: 'relative', width: '100%', height: '260px' }}>
+                {chartsData.studentPaymentTrends.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No recent payment transactions</p>
+                ) : (
+                  <ResponsiveContainer width="99%" height="100%">
+                    <LineChart data={chartsData.studentPaymentTrends}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                      <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                      <Tooltip 
+                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(value, name, props) => [`₹${value.toLocaleString()}`, `${props.payload.studentName}`]}
+                      />
+                      <Line type="monotone" dataKey="Amount" stroke="var(--accent-secondary)" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} />
+                    </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>

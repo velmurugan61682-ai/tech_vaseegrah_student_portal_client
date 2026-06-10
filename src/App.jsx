@@ -10,6 +10,8 @@ import AdminAttendance from './components/AdminAttendance';
 import AdminTasks from './components/AdminTasks';
 import AdminReports from './components/AdminReports';
 import AdminBranches from './components/AdminBranches';
+import AdminPayments from './components/AdminPayments';
+import StudentPayments from './components/StudentPayments';
 
 function MainAppContent() {
   const { user, loading, login, register, logout } = useAuth();
@@ -326,6 +328,7 @@ function MainAppContent() {
                   { id: 'dashboard', label: 'Dashboard', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
                   { id: 'attendance', label: 'Attendance', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
                   { id: 'tasks', label: 'Daily Tasks', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+                  { id: 'payments', label: 'My Payments', icon: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' },
                   { id: 'profile', label: 'Profile Settings', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
                 ].map(item => (
                   <button
@@ -363,6 +366,7 @@ function MainAppContent() {
                   { id: 'attendance', label: 'Attendance Board', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
                   { id: 'branches', label: 'Branch Management', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
                   { id: 'tasks', label: 'Task Scheduler', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2' },
+                  { id: 'payments', label: 'Payment Audit', icon: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' },
                   { id: 'reports', label: 'Reports & Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' }
                 ].map(item => (
                   <button
@@ -432,6 +436,7 @@ function MainAppContent() {
             {activeTab === 'dashboard' && <StudentDashboard setActiveTab={setActiveTab} />}
             {activeTab === 'attendance' && <StudentAttendance />}
             {activeTab === 'tasks' && <StudentTasks />}
+            {activeTab === 'payments' && <StudentPayments />}
             {activeTab === 'profile' && <StudentProfile />}
           </>
         )}
@@ -444,6 +449,7 @@ function MainAppContent() {
             {activeTab === 'attendance' && <AdminAttendance />}
             {activeTab === 'branches' && <AdminBranches />}
             {activeTab === 'tasks' && <AdminTasks />}
+            {activeTab === 'payments' && <AdminPayments />}
             {activeTab === 'reports' && <AdminReports />}
           </>
         )}
