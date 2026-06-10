@@ -19,6 +19,8 @@ const TASK_COLORS = {
 
 export default function AdminDashboard() {
   const { showToast } = useAuth();
+  const currentYear = new Date().getFullYear();
+  const [isMounted, setIsMounted] = useState(false);
   const [stats, setStats] = useState({
     totalStudents: 0,
     presentToday: 0,
@@ -94,6 +96,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    setIsMounted(true);
     fetchDashboardStats();
   }, []);
 
@@ -184,32 +187,34 @@ export default function AdminDashboard() {
                 {chartsData.studentsByCourse.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No records found</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartsData.studentsByCourse}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={85}
-                        paddingAngle={5}
-                        dataKey="count"
-                      >
-                        {chartsData.studentsByCourse.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={36} 
-                        formatter={(value, entry) => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{entry.payload.name}</span>}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <PieChart>
+                        <Pie
+                          data={chartsData.studentsByCourse}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={85}
+                          paddingAngle={5}
+                          dataKey="count"
+                        >
+                          {chartsData.studentsByCourse.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Legend 
+                          verticalAlign="bottom" 
+                          height={36} 
+                          formatter={(value) => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{value}</span>}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -223,28 +228,30 @@ export default function AdminDashboard() {
                 {chartsData.studentsByBranch.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No records found</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <BarChart data={chartsData.studentsByBranch}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                      <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                      <Bar dataKey="count" fill="url(#branchGrad)" radius={[4, 4, 0, 0]}>
-                        {chartsData.studentsByBranch.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                      <defs>
-                        <linearGradient id="branchGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="var(--accent-secondary)" stopOpacity={0.4}/>
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <BarChart data={chartsData.studentsByBranch}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                        <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Bar dataKey="count" fill="url(#branchGrad)" radius={[4, 4, 0, 0]}>
+                          {chartsData.studentsByBranch.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                        <defs>
+                          <linearGradient id="branchGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="var(--accent-secondary)" stopOpacity={0.4}/>
+                          </linearGradient>
+                        </defs>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -263,20 +270,22 @@ export default function AdminDashboard() {
                 {chartsData.attendanceAnalytics.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No records logged yet</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <AreaChart data={chartsData.attendanceAnalytics}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                      <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                      <Legend formatter={(value) => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{value}</span>} />
-                      <Area type="monotone" dataKey="Present" stroke="#10b981" fillOpacity={0.2} fill="rgba(16, 185, 129, 0.2)" />
-                      <Area type="monotone" dataKey="Absent" stroke="#ef4444" fillOpacity={0.2} fill="rgba(239, 68, 68, 0.2)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <AreaChart data={chartsData.attendanceAnalytics}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                        <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Legend formatter={(value) => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{value}</span>} />
+                        <Area type="monotone" dataKey="Present" stroke="#10b981" fillOpacity={0.2} fill="rgba(16, 185, 129, 0.2)" />
+                        <Area type="monotone" dataKey="Absent" stroke="#ef4444" fillOpacity={0.2} fill="rgba(239, 68, 68, 0.2)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -290,26 +299,28 @@ export default function AdminDashboard() {
                 {chartsData.taskAnalytics.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No task solutions filed yet</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartsData.taskAnalytics}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={85}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {chartsData.taskAnalytics.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={TASK_COLORS[entry.name] || COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <PieChart>
+                        <Pie
+                          data={chartsData.taskAnalytics}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={85}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartsData.taskAnalytics.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={TASK_COLORS[entry.name] || COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -322,25 +333,27 @@ export default function AdminDashboard() {
             {/* Monthly Revenue Chart */}
             <div className="glass-card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
-                Monthly Revenue Chart (${currentYear})
+                Monthly Revenue Chart ({currentYear})
               </h3>
               <div style={{ position: 'relative', width: '100%', height: '260px' }}>
                 {chartsData.monthlyRevenue.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No revenue records found</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <BarChart data={chartsData.monthlyRevenue}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                      <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                        formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
-                      />
-                      <Bar dataKey="Revenue" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <BarChart data={chartsData.monthlyRevenue}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                        <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                          formatter={(value) => [`₹${value?.toLocaleString() || 0}`, 'Revenue']}
+                        />
+                        <Bar dataKey="Revenue" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -354,28 +367,30 @@ export default function AdminDashboard() {
                 {chartsData.paymentStatusPie.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No transaction history found</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartsData.paymentStatusPie}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={85}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {chartsData.paymentStatusPie.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <PieChart>
+                        <Pie
+                          data={chartsData.paymentStatusPie}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={85}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartsData.paymentStatusPie.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -394,19 +409,21 @@ export default function AdminDashboard() {
                 {chartsData.internshipWiseRevenue.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No revenue recorded</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <BarChart data={chartsData.internshipWiseRevenue}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                      <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                        formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
-                      />
-                      <Bar dataKey="Revenue" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <BarChart data={chartsData.internshipWiseRevenue}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                        <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                          formatter={(value) => [`₹${value?.toLocaleString() || 0}`, 'Revenue']}
+                        />
+                        <Bar dataKey="Revenue" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
@@ -420,19 +437,21 @@ export default function AdminDashboard() {
                 {chartsData.studentPaymentTrends.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: '80px' }}>No recent payment transactions</p>
                 ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <LineChart data={chartsData.studentPaymentTrends}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                      <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                      <Tooltip 
-                        contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
-                        itemStyle={{ color: '#fff' }}
-                        formatter={(value, name, props) => [`₹${value.toLocaleString()}`, `${props.payload.studentName}`]}
-                      />
-                      <Line type="monotone" dataKey="Amount" stroke="var(--accent-secondary)" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  isMounted && (
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0}>
+                      <LineChart data={chartsData.studentPaymentTrends}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                        <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ background: '#171b26', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }} 
+                          itemStyle={{ color: '#fff' }}
+                          formatter={(value, name, props) => [`₹${value?.toLocaleString() || 0}`, `${props?.payload?.studentName || name}`]}
+                        />
+                        <Line type="monotone" dataKey="Amount" stroke="var(--accent-secondary)" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )
                 )}
               </div>
             </div>
