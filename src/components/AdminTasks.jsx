@@ -23,6 +23,18 @@ export default function AdminTasks() {
   });
   const [creating, setCreating] = useState(false);
 
+  // Edit Task State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    assignedTo: 'all',
+    course: 'MERN Stack',
+    studentId: '',
+    dueDate: '',
+    priority: 'Medium'
+  });
+
   // Selected Task Submissions
   const [selectedTask, setSelectedTask] = useState(null);
   const [submissions, setSubmissions] = useState([]);
@@ -60,6 +72,7 @@ export default function AdminTasks() {
 
   const handleSelectTask = async (task) => {
     setSelectedTask(task);
+    setIsEditing(false);
     setReviewingSub(null);
     try {
       setSubsLoading(true);
@@ -134,6 +147,65 @@ export default function AdminTasks() {
       }
     } catch (error) {
       alert('Delete error: ' + error.message);
+    }
+  };
+
+  const handleStartEdit = (task) => {
+    setIsEditing(true);
+    setEditFormData({
+      title: task.title || '',
+      description: task.description || '',
+      assignedTo: task.assignmentType || 'all',
+      course: task.course || 'MERN Stack',
+      studentId: task.assignedTo && task.assignedTo.length > 0 ? task.assignedTo[0] : '',
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+      priority: task.priority || 'Medium'
+    });
+  };
+
+  const handleUpdateTask = async (e) => {
+    e.preventDefault();
+    try {
+      setCreating(true);
+
+      const payload = {
+        title: editFormData.title,
+        description: editFormData.description,
+        dueDate: editFormData.dueDate,
+        priority: editFormData.priority,
+        assignmentType: editFormData.assignedTo
+      };
+
+      if (editFormData.assignedTo === 'course') {
+        payload.course = editFormData.course;
+      } else if (editFormData.assignedTo === 'student') {
+        payload.assignedTo = [editFormData.studentId];
+      }
+
+      const res = await apiCall(`/tasks/${selectedTask._id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert('Task updated successfully!');
+        setIsEditing(false);
+        const updatedTaskRes = await apiCall('/tasks');
+        if (updatedTaskRes.ok) {
+          const tasksData = await updatedTaskRes.json();
+          const list = tasksData.tasks || tasksData.data || [];
+          setTasks(list);
+          const freshTask = list.find(t => t._id === selectedTask._id);
+          if (freshTask) setSelectedTask(freshTask);
+        }
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to update task');
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -369,27 +441,147 @@ export default function AdminTasks() {
             {selectedTask ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 
-                {/* Header detail block */}
-                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
-                    <div>
-                      <h2 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>{selectedTask.title}</h2>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        <strong>Due Date:</strong> {new Date(selectedTask.dueDate).toLocaleDateString()}
-                      </span>
-                      <p style={{ whiteSpace: 'pre-wrap', marginTop: '12px', color: 'var(--text-main)', background: 'rgba(0,0,0,0.2)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', fontSize: '0.92rem' }}>
-                        {selectedTask.description}
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => handleDeleteTask(selectedTask._id)}
-                      className="btn btn-danger"
-                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-                    >
-                      Delete Task
-                    </button>
+                {isEditing ? (
+                  /* Edit Task Form */
+                  <div className="fade-in">
+                    <h2 style={{ fontSize: '1.4rem', marginBottom: '20px' }}>Edit Task Objectives</h2>
+                    <form onSubmit={handleUpdateTask} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      
+                      <div className="form-group">
+                        <label className="form-label">Task Title</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editFormData.title}
+                          onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Instructions / Description</label>
+                        <textarea 
+                          className="form-control" 
+                          rows="4"
+                          value={editFormData.description}
+                          onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="form-group">
+                          <label className="form-label">Due Date</label>
+                          <input 
+                            type="date" 
+                            className="form-control" 
+                            value={editFormData.dueDate}
+                            onChange={(e) => setEditFormData({ ...editFormData, dueDate: e.target.value })}
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Priority Level</label>
+                          <select 
+                            className="form-control"
+                            value={editFormData.priority}
+                            onChange={(e) => setEditFormData({ ...editFormData, priority: e.target.value })}
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Assign To</label>
+                        <select 
+                          className="form-control"
+                          value={editFormData.assignedTo}
+                          onChange={(e) => setEditFormData({ ...editFormData, assignedTo: e.target.value })}
+                        >
+                          <option value="all">All Registered Students</option>
+                          <option value="course">Entire Course Track</option>
+                          <option value="student">Specific Student</option>
+                        </select>
+                      </div>
+
+                      {editFormData.assignedTo === 'course' && (
+                        <div className="form-group fade-in">
+                          <label className="form-label">Select Course</label>
+                          <select 
+                            className="form-control"
+                            value={editFormData.course}
+                            onChange={(e) => setEditFormData({ ...editFormData, course: e.target.value })}
+                          >
+                            <option value="Python">Python</option>
+                            <option value="MERN Stack">MERN Stack</option>
+                            <option value="AI & ML">AI & ML</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {editFormData.assignedTo === 'student' && (
+                        <div className="form-group fade-in">
+                          <label className="form-label">Select Student</label>
+                          <select 
+                            className="form-control"
+                            value={editFormData.studentId}
+                            onChange={(e) => setEditFormData({ ...editFormData, studentId: e.target.value })}
+                            required
+                          >
+                            <option value="">-- Choose student --</option>
+                            {students.map(s => (
+                              <option key={s._id} value={s._id}>{s.name} ({s.course})</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                        <button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary">
+                          Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary" disabled={creating}>
+                          {creating ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                </div>
+                ) : (
+                  /* Header detail block */
+                  <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
+                      <div style={{ flex: 1 }}>
+                        <h2 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>{selectedTask.title}</h2>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <strong>Due Date:</strong> {new Date(selectedTask.dueDate).toLocaleDateString()}
+                        </span>
+                        <p style={{ whiteSpace: 'pre-wrap', marginTop: '12px', color: 'var(--text-main)', background: 'rgba(0,0,0,0.2)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', fontSize: '0.92rem' }}>
+                          {selectedTask.description}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                          onClick={() => handleStartEdit(selectedTask)}
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                        >
+                          Edit Task
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteTask(selectedTask._id)}
+                          className="btn btn-danger"
+                          style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                        >
+                          Delete Task
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Submissions Section */}
                 <div>

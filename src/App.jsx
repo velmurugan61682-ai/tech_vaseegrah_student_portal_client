@@ -9,6 +9,7 @@ import AdminStudents from './components/AdminStudents';
 import AdminAttendance from './components/AdminAttendance';
 import AdminTasks from './components/AdminTasks';
 import AdminReports from './components/AdminReports';
+import AdminBranches from './components/AdminBranches';
 
 function MainAppContent() {
   const { user, loading, login, register, logout } = useAuth();
@@ -360,6 +361,7 @@ function MainAppContent() {
                   { id: 'dashboard', label: 'Overview Dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
                   { id: 'students', label: 'Student Directory', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
                   { id: 'attendance', label: 'Attendance Board', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+                  { id: 'branches', label: 'Branch Management', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
                   { id: 'tasks', label: 'Task Scheduler', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2' },
                   { id: 'reports', label: 'Reports & Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' }
                 ].map(item => (
@@ -440,6 +442,7 @@ function MainAppContent() {
             {activeTab === 'dashboard' && <AdminDashboard />}
             {activeTab === 'students' && <AdminStudents />}
             {activeTab === 'attendance' && <AdminAttendance />}
+            {activeTab === 'branches' && <AdminBranches />}
             {activeTab === 'tasks' && <AdminTasks />}
             {activeTab === 'reports' && <AdminReports />}
           </>
