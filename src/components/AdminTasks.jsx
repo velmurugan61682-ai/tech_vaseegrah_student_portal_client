@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
+
 export default function AdminTasks() {
   const { apiCall } = useAuth();
   
@@ -27,26 +29,23 @@ export default function AdminTasks() {
   const [subsLoading, setSubsLoading] = useState(false);
 
   // Reviewing a submission
-  const [reviewingSub, setReviewingSub] = useState(null); // the submission object being reviewed
-  const [reviewForm, setReviewForm] = useState({
-    status: 'approved',
-    adminFeedback: ''
-  });
+  const [reviewingSub, setReviewingSub] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [savingReview, setSavingReview] = useState(false);
 
   const fetchInitialData = async () => {
     try {
       setLoading(true);
       const tasksRes = await apiCall('/tasks');
-      const studentsRes = await apiCall('/students');
+      const studentsRes = await apiCall('/admin/students');
       
       if (tasksRes.ok) {
         const tasksData = await tasksRes.json();
-        setTasks(tasksData.tasks || []);
+        setTasks(tasksData.tasks || tasksData.data || []);
       }
       if (studentsRes.ok) {
         const studentsData = await studentsRes.json();
-        setStudents(studentsData.students || []);
+        setStudents(studentsData.students || studentsData.data || []);
       }
     } catch (error) {
       console.error(error);
@@ -64,10 +63,10 @@ export default function AdminTasks() {
     setReviewingSub(null);
     try {
       setSubsLoading(true);
-      const res = await apiCall(`/submissions/task/${task._id}`);
+      const res = await apiCall(`/tasks/${task._id}/submissions`);
       if (res.ok) {
         const data = await res.json();
-        setSubmissions(data.submissions || []);
+        setSubmissions(data.submissions || data.data || []);
       }
     } catch (error) {
       console.error(error);
@@ -84,15 +83,15 @@ export default function AdminTasks() {
       const payload = {
         title: formData.title,
         description: formData.description,
-        assignedTo: formData.assignedTo,
         dueDate: formData.dueDate,
-        priority: formData.priority
+        priority: formData.priority,
+        assignmentType: formData.assignedTo
       };
 
       if (formData.assignedTo === 'course') {
         payload.course = formData.course;
       } else if (formData.assignedTo === 'student') {
-        payload.studentId = formData.studentId;
+        payload.assignedTo = [formData.studentId];
       }
 
       const res = await apiCall('/tasks', {
@@ -140,32 +139,52 @@ export default function AdminTasks() {
 
   const handleOpenReview = (submission) => {
     setReviewingSub(submission);
-    setReviewForm({
-      status: 'approved',
-      adminFeedback: submission.adminFeedback || ''
-    });
+    setRejectionReason(submission.adminFeedback || '');
   };
 
-  const handleSaveReview = async (e) => {
-    e.preventDefault();
+  const handleApprove = async (sub) => {
     try {
       setSavingReview(true);
-      const res = await apiCall(`/submissions/${reviewingSub._id}/review`, {
+      const studentId = sub.studentId?._id || sub.studentId;
+      const res = await apiCall(`/tasks/${selectedTask._id}/approve`, {
         method: 'PUT',
-        body: JSON.stringify(reviewForm)
+        body: JSON.stringify({ studentId })
       });
 
       if (res.ok) {
-        alert('Review saved successfully');
+        alert('Submission approved successfully!');
         setReviewingSub(null);
-        // Refresh submissions list
         if (selectedTask) handleSelectTask(selectedTask);
       } else {
         const data = await res.json();
-        alert(data.message || 'Failed to submit review');
+        alert(data.message || 'Failed to approve submission');
       }
-    } catch (error) {
-      alert('Error: ' + error.message);
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setSavingReview(false);
+    }
+  };
+
+  const handleReject = async (sub, reason) => {
+    try {
+      setSavingReview(true);
+      const studentId = sub.studentId?._id || sub.studentId;
+      const res = await apiCall(`/tasks/${selectedTask._id}/reject`, {
+        method: 'PUT',
+        body: JSON.stringify({ studentId, reason })
+      });
+
+      if (res.ok) {
+        alert('Submission rejected successfully!');
+        setReviewingSub(null);
+        if (selectedTask) handleSelectTask(selectedTask);
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to reject submission');
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
     } finally {
       setSavingReview(false);
     }
@@ -175,30 +194,31 @@ export default function AdminTasks() {
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Task Management</h1>
+          <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Task Scheduler</h1>
           <p style={{ color: 'var(--text-muted)' }}>Publish daily intern objectives and evaluate solutions.</p>
         </div>
-        
+
         <button 
           onClick={() => setShowCreateForm(!showCreateForm)} 
           className="btn btn-primary"
         >
-          {showCreateForm ? 'View Tasks List' : 'Assign New Task'}
+          {showCreateForm ? 'View Active Tasks' : 'Create Daily Task'}
         </button>
       </div>
 
       {showCreateForm ? (
-        /* Form for Task Creation */
-        <div className="glass-card" style={{ maxWidth: '700px' }}>
-          <h2 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Create Daily Task</h2>
+        /* Create Task Form */
+        <div className="glass-card fade-in" style={{ maxWidth: '700px' }}>
+          <h2 style={{ fontSize: '1.4rem', marginBottom: '20px' }}>Schedule New Task</h2>
           
-          <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
             <div className="form-group">
               <label className="form-label">Task Title</label>
               <input 
                 type="text" 
-                className="form-control"
-                placeholder="e.g. Build Login Screen UI"
+                className="form-control" 
+                placeholder="e.g. Implement JWT authentication flow"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
@@ -206,11 +226,11 @@ export default function AdminTasks() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Task Description</label>
+              <label className="form-label">Task Instructions / Description</label>
               <textarea 
-                className="form-control"
+                className="form-control" 
                 rows="5"
-                placeholder="Enter details of the task, links, or expectations..."
+                placeholder="Describe objective constraints, expected outputs, references..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
@@ -222,7 +242,7 @@ export default function AdminTasks() {
                 <label className="form-label">Due Date</label>
                 <input 
                   type="date" 
-                  className="form-control"
+                  className="form-control" 
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
                   required
@@ -230,29 +250,29 @@ export default function AdminTasks() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Priority</label>
+                <label className="form-label">Priority Level</label>
                 <select 
                   className="form-control"
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                 >
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
                   <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
                 </select>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Assign Target Scope</label>
+              <label className="form-label">Assign To</label>
               <select 
                 className="form-control"
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
               >
                 <option value="all">All Registered Students</option>
-                <option value="course">Specific Course Track</option>
-                <option value="student">Individual Student</option>
+                <option value="course">Entire Course Track</option>
+                <option value="student">Specific Student</option>
               </select>
             </div>
 
@@ -264,7 +284,6 @@ export default function AdminTasks() {
                   value={formData.course}
                   onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                 >
-                  <option value="Java">Java</option>
                   <option value="Python">Python</option>
                   <option value="MERN Stack">MERN Stack</option>
                   <option value="AI & ML">AI & ML</option>
@@ -281,78 +300,84 @@ export default function AdminTasks() {
                   onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                   required
                 >
-                  <option value="">-- Choose Student --</option>
-                  {students.map(student => (
-                    <option key={student._id} value={student._id}>
-                      {student.name} ({student.course})
-                    </option>
+                  <option value="">-- Choose student --</option>
+                  {students.map(s => (
+                    <option key={s._id} value={s._id}>{s.name} ({s.course})</option>
                   ))}
                 </select>
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" disabled={creating}>
-              {creating ? 'Creating...' : 'Publish Task'}
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '10px', height: '46px' }} disabled={creating}>
+              {creating ? 'Publishing...' : 'Publish Task'}
             </button>
           </form>
         </div>
       ) : (
-        /* Tasks List & Submission Review split view */
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '30px', alignItems: 'start' }}>
+        /* Active Tasks Workspace */
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '30px', alignItems: 'start' }}>
           
-          {/* Tasks List */}
+          {/* Active Tasks Panel */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>Published Objectives</h2>
             
             {loading ? (
-              <p style={{ color: 'var(--text-muted)' }}>Loading tasks...</p>
+              <p style={{ color: 'var(--text-muted)' }}>Loading objectives...</p>
             ) : tasks.length === 0 ? (
               <div className="glass-card">
-                <p style={{ color: 'var(--text-muted)' }}>No tasks found. Click "Assign New Task" to create one.</p>
+                <p style={{ color: 'var(--text-muted)' }}>No tasks found. Create one using the button above.</p>
               </div>
             ) : (
               tasks.map(task => (
                 <div 
                   key={task._id} 
-                  className="glass-card" 
+                  className="glass-card"
                   onClick={() => handleSelectTask(task)}
-                  style={{ 
+                  style={{
                     cursor: 'pointer',
-                    borderLeft: selectedTask?._id === task._id ? '4px solid var(--accent-primary)' : '4px solid rgba(255,255,255,0.05)',
+                    borderLeft: selectedTask?._id === task._id ? '4px solid var(--accent-primary)' : '1px solid var(--glass-border)',
                     background: selectedTask?._id === task._id ? 'var(--bg-tertiary)' : 'var(--glass-bg)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       Due: {new Date(task.dueDate).toLocaleDateString()}
                     </span>
                     <span className={`badge ${
                       task.priority === 'High' ? 'badge-danger' : task.priority === 'Medium' ? 'badge-warning' : 'badge-info'
                     }`}>
-                      {task.priority} Priority
+                      {task.priority}
                     </span>
                   </div>
                   
                   <h3 style={{ fontSize: '1.05rem', marginBottom: '6px' }}>{task.title}</h3>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-dark)' }}>
-                    Assigned to: {task.assignedTo === 'all' ? 'All Interns' : task.assignedTo === 'course' ? `${task.course} Course` : task.studentId?.name || 'Individual'}
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)', textTransform: 'capitalize' }}>
+                    Scope: {task.assignmentType} {task.assignmentType === 'course' ? `(${task.course})` : ''}
                   </span>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed var(--glass-border)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <span>Submissions: <strong>{task.submissionCount || 0}</strong></span>
+                    <span>Approved: <strong style={{ color: 'var(--color-success)' }}>{task.approvedCount || 0}</strong></span>
+                  </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Submission and Reviews Panel */}
+          {/* Submissions & Details Panel */}
           <div className="glass-card" style={{ minHeight: '400px' }}>
             {selectedTask ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 
-                {/* Task Details Info */}
-                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '15px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                {/* Header detail block */}
+                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
                     <div>
-                      <h2 style={{ fontSize: '1.3rem', marginBottom: '6px' }}>{selectedTask.title}</h2>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', whiteSpace: 'pre-wrap' }}>
+                      <h2 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>{selectedTask.title}</h2>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        <strong>Due Date:</strong> {new Date(selectedTask.dueDate).toLocaleDateString()}
+                      </span>
+                      <p style={{ whiteSpace: 'pre-wrap', marginTop: '12px', color: 'var(--text-main)', background: 'rgba(0,0,0,0.2)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', fontSize: '0.92rem' }}>
                         {selectedTask.description}
                       </p>
                     </div>
@@ -377,7 +402,7 @@ export default function AdminTasks() {
                   ) : submissions.length === 0 ? (
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No student has submitted a solution for this task yet.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '450px', overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '550px', overflowY: 'auto' }}>
                       {submissions.map(sub => (
                         <div 
                           key={sub._id} 
@@ -393,18 +418,16 @@ export default function AdminTasks() {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              {sub.studentId?.profilePhoto ? (
-                                <img src={sub.studentId.profilePhoto} alt="" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
-                              ) : (
-                                <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                  {sub.studentId?.name.charAt(0).toUpperCase()}
-                                </div>
-                              )}
+                              <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>
+                                {sub.studentId?.name ? sub.studentId.name.charAt(0).toUpperCase() : 'U'}
+                              </div>
                               <div>
                                 <strong style={{ fontSize: '0.95rem' }}>{sub.studentId?.name || 'Deleted student'}</strong>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px' }}>
-                                  ({sub.studentId?.course} | Batch {sub.studentId?.batch})
-                                </span>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                  <span>{sub.studentId?.course || 'N/A'}</span>
+                                  <span style={{ margin: '0 6px' }}>•</span>
+                                  <span>Submitted: {new Date(sub.submittedAt).toLocaleString()}</span>
+                                </div>
                               </div>
                             </div>
 
@@ -413,41 +436,65 @@ export default function AdminTasks() {
                             </span>
                           </div>
 
-                          <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.02)' }}>
-                            {sub.submissionText}
-                          </p>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.02)', whiteSpace: 'pre-wrap' }}>
+                            {sub.solutionText}
+                          </div>
+
+                          {sub.githubLink && (
+                            <div style={{ fontSize: '0.85rem' }}>
+                              <strong>GitHub Link: </strong>
+                              <a href={sub.githubLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+                                {sub.githubLink}
+                              </a>
+                            </div>
+                          )}
+
+                          {(sub.imagePath || sub.documentPath) && (
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                              {sub.imagePath && (
+                                <a 
+                                  href={`${API_BASE_URL}${sub.imagePath}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="btn btn-secondary" 
+                                  style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                                >
+                                  View Image
+                                </a>
+                              )}
+                              {sub.documentPath && (
+                                <a 
+                                  href={`${API_BASE_URL}${sub.documentPath}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  download
+                                  className="btn btn-secondary" 
+                                  style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                                >
+                                  View Document
+                                </a>
+                              )}
+                            </div>
+                          )}
 
                           {sub.adminFeedback && (
                             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', borderLeft: '2px solid var(--accent-secondary)', paddingLeft: '10px' }}>
-                              <strong>Feedback:</strong> {sub.adminFeedback}
+                              <strong>Feedback/Rejection Reason:</strong> {sub.adminFeedback}
                             </div>
                           )}
 
                           {reviewingSub?._id === sub._id ? (
-                            /* Sub form to edit evaluation */
-                            <form onSubmit={handleSaveReview} className="fade-in" style={{ borderTop: '1px dashed var(--glass-border)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div style={{ display: 'flex', gap: '15px' }}>
-                                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-                                  <label className="form-label">Status</label>
-                                  <select 
-                                    className="form-control"
-                                    value={reviewForm.status}
-                                    onChange={(e) => setReviewForm({ ...reviewForm, status: e.target.value })}
-                                  >
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                  </select>
-                                </div>
-                              </div>
-
+                            /* Review Submission Section */
+                            <div className="fade-in" style={{ borderTop: '1px dashed var(--glass-border)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              
                               <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label className="form-label">Review Feedback</label>
+                                <label className="form-label">Rejection Reason (only needed for rejection)</label>
                                 <textarea 
                                   className="form-control" 
                                   rows="2"
-                                  placeholder="Add notes / tips for improvement..."
-                                  value={reviewForm.adminFeedback}
-                                  onChange={(e) => setReviewForm({ ...reviewForm, adminFeedback: e.target.value })}
+                                  placeholder="Write reason for rejection or feedback..."
+                                  value={rejectionReason}
+                                  onChange={(e) => setRejectionReason(e.target.value)}
                                 />
                               </div>
 
@@ -455,11 +502,26 @@ export default function AdminTasks() {
                                 <button type="button" onClick={() => setReviewingSub(null)} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
                                   Cancel
                                 </button>
-                                <button type="submit" className="btn btn-primary" disabled={savingReview} style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-                                  {savingReview ? 'Saving...' : 'Save Review'}
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleReject(sub, rejectionReason)} 
+                                  className="btn btn-danger" 
+                                  disabled={savingReview} 
+                                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                >
+                                  {savingReview ? 'Saving...' : 'Reject'}
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleApprove(sub)} 
+                                  className="btn btn-success" 
+                                  disabled={savingReview} 
+                                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                >
+                                  {savingReview ? 'Saving...' : 'Approve'}
                                 </button>
                               </div>
-                            </form>
+                            </div>
                           ) : (
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                               <button 

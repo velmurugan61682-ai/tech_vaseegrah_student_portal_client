@@ -14,38 +14,32 @@ export default function StudentDashboard({ setActiveTab }) {
     try {
       setStatsLoading(true);
       
-      // 1. Fetch attendance history
-      const attendanceRes = await apiCall(`/attendance/student/${user._id}`);
-      if (attendanceRes.ok) {
-        const attendanceData = await attendanceRes.json();
-        setAttendancePercent(attendanceData.attendancePercentage);
-        
-        // Find if today is marked
-        const todayStr = new Date().toISOString().split('T')[0];
-        const todayRecord = attendanceData.history.find(record => record.date === todayStr);
-        if (todayRecord) {
-          setTodayAttendance(todayRecord.status);
-        }
+      // 1. Fetch dashboard metrics
+      const res = await apiCall('/student/dashboard');
+      if (res.ok) {
+        const data = await res.json();
+        const metrics = data.data || data;
+        setPendingTasksCount(metrics.pendingTasks || 0);
+        setAttendancePercent(metrics.attendanceRate || 100);
+        setTaskCompletionRate(metrics.taskCompletionRate || 0);
       }
 
-      // 2. Fetch tasks and submissions to count pending tasks
-      const tasksRes = await apiCall('/tasks');
-      const submissionsRes = await apiCall(`/submissions/student/${user._id}`);
-      
-      if (tasksRes.ok && submissionsRes.ok) {
-        const tasksData = await tasksRes.json();
-        const submissionsData = await submissionsRes.json();
+      // 2. Check if today's attendance is marked
+      const attRes = await apiCall('/attendance/my');
+      if (attRes.ok) {
+        const attData = await attRes.json();
+        const historyList = attData.history || [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayRecord = historyList.find(record => {
+          if (!record.date) return false;
+          return new Date(record.date).toISOString().split('T')[0] === todayStr;
+        });
         
-        const submittedTaskIds = submissionsData.submissions.map(s => s.taskId?._id || s.taskId);
-        
-        // Count tasks that don't have a submission yet
-        const pending = tasksData.tasks.filter(task => !submittedTaskIds.includes(task._id));
-        setPendingTasksCount(pending.length);
-
-        // Completion rate
-        const total = tasksData.tasks.length;
-        const completed = submissionsData.submissions.filter(s => s.status === 'approved').length;
-        setTaskCompletionRate(total > 0 ? Math.round((completed / total) * 100) : 100);
+        if (todayRecord) {
+          setTodayAttendance(todayRecord.status);
+        } else {
+          setTodayAttendance('unmarked');
+        }
       }
     } catch (error) {
       console.error('Failed to load student dashboard stats:', error);
@@ -96,24 +90,22 @@ export default function StudentDashboard({ setActiveTab }) {
         alignItems: 'center',
         gap: '20px'
       }}>
-        <div>
-          <span className="badge badge-info" style={{ marginBottom: '10px' }}>{user.course} Intern</span>
-          <h2 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>Hello, {user.name}!</h2>
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            <span><strong>College:</strong> {user.college}</span>
-            <span><strong>Branch:</strong> {user.branch}</span>
-            <span><strong>Batch:</strong> {user.batch}</span>
-            <span><strong>Phone:</strong> {user.phone}</span>
-          </div>
-        </div>
-        
-        {user.profilePhoto ? (
-          <img src={user.profilePhoto} alt={user.name} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent-primary)' }} />
-        ) : (
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 'bold', border: '3px solid var(--accent-primary)' }}>
-            {user.name.charAt(0).toUpperCase()}
+        {user && (
+          <div>
+            <span className="badge badge-info" style={{ marginBottom: '10px' }}>{user.course || 'Intern'} Track</span>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>Hello, {user.name}!</h2>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              <span><strong>College:</strong> {user.college || 'N/A'}</span>
+              <span><strong>Branch:</strong> {user.branch || 'N/A'}</span>
+              <span><strong>Batch:</strong> {user.batch || 'N/A'}</span>
+              <span><strong>Phone:</strong> {user.phone || 'N/A'}</span>
+            </div>
           </div>
         )}
+        
+        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 'bold', border: '3px solid var(--accent-primary)', color: '#fff' }}>
+          {user ? user.name.charAt(0).toUpperCase() : 'U'}
+        </div>
       </div>
 
       {/* Primary Metrics Grid */}
@@ -160,7 +152,7 @@ export default function StudentDashboard({ setActiveTab }) {
                   width: '12px', 
                   height: '12px', 
                   borderRadius: '50%', 
-                  backgroundColor: todayAttendance === 'present' ? 'var(--color-success)' : 'var(--color-danger)' 
+                  backgroundColor: todayAttendance === 'present' ? 'var(--color-success)' : todayAttendance === 'late' ? 'var(--color-warning)' : 'var(--color-danger)' 
                 }} />
                 <div>
                   <h4 style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}>Today: {todayAttendance}</h4>
@@ -201,7 +193,7 @@ export default function StudentDashboard({ setActiveTab }) {
         </div>
 
         {/* Progress Overview Widget */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '20px' }}>
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ fontSize: '1.2rem' }}>Task Completion Rate</h3>
@@ -212,7 +204,6 @@ export default function StudentDashboard({ setActiveTab }) {
               </svg>
             </div>
             
-            {/* Custom styled progress bars */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '5px' }}>
@@ -246,10 +237,6 @@ export default function StudentDashboard({ setActiveTab }) {
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-dark)' }}>
-            Updated in real-time
           </div>
         </div>
 

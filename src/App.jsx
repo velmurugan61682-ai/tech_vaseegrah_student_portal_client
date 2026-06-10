@@ -268,7 +268,6 @@ function MainAppContent() {
                       value={formData.course}
                       onChange={handleInputChange}
                     >
-                      <option value="Java">Java</option>
                       <option value="Python">Python</option>
                       <option value="MERN Stack">MERN Stack</option>
                       <option value="AI & ML">AI & ML</option>

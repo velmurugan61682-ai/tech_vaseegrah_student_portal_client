@@ -8,8 +8,8 @@ export default function StudentProfile() {
     name: user.name || '',
     phone: user.phone || '',
     college: user.college || '',
-    branch: user.branch || '',
-    batch: user.batch || '',
+    branch: user.department?.code || user.branch || '',
+    batch: user.batch?.name || user.batch || '',
     profilePhoto: user.profilePhoto || ''
   });
 

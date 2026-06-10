@@ -15,7 +15,7 @@ export default function AdminStudents() {
   });
 
   // Unique lists for filtering dropdowns
-  const [coursesList] = useState(['Java', 'Python', 'MERN Stack', 'AI & ML']);
+  const [coursesList] = useState(['Python', 'MERN Stack', 'AI & ML']);
   const [branchesList, setBranchesList] = useState([]);
   const [batchesList, setBatchesList] = useState([]);
 
@@ -35,12 +35,12 @@ export default function AdminStudents() {
       if (filters.course) params.append('course', filters.course);
       if (filters.branch) params.append('branch', filters.branch);
       if (filters.batch) params.append('batch', filters.batch);
-      if (filters.attendanceStatus) params.append('attendanceStatus', filters.attendanceStatus);
+      if (filters.attendanceStatus) params.append('todayStatus', filters.attendanceStatus);
 
-      const res = await apiCall(`/students?${params.toString()}`);
+      const res = await apiCall(`/admin/students?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        const studentData = data.students || [];
+        const studentData = data.students || data.data || [];
         setStudents(studentData);
 
         // Extract unique branches and batches for dynamic filter values
@@ -73,7 +73,7 @@ export default function AdminStudents() {
       setDetailsLoading(true);
       // Fetch selected student's attendance history
       const attRes = await apiCall(`/attendance/student/${student._id}`);
-      const subsRes = await apiCall(`/submissions/student/${student._id}`);
+      const subsRes = await apiCall(`/tasks/student/${student._id}/submissions`);
       
       if (attRes.ok && subsRes.ok) {
         const attData = await attRes.json();
@@ -108,7 +108,7 @@ export default function AdminStudents() {
     }
     
     try {
-      const res = await apiCall(`/students/${studentId}`, { method: 'DELETE' });
+      const res = await apiCall(`/admin/students/${studentId}`, { method: 'DELETE' });
       if (res.ok) {
         alert('Student deleted successfully');
         setSelectedStudent(null);
@@ -125,7 +125,7 @@ export default function AdminStudents() {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Student Management</h1>
+        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Student Directory</h1>
         <p style={{ color: 'var(--text-muted)' }}>Review and manage intern accounts, check-in histories, and task solutions.</p>
       </div>
 
@@ -159,8 +159,9 @@ export default function AdminStudents() {
           <label className="form-label">Today's Attendance</label>
           <select name="attendanceStatus" className="form-control" value={filters.attendanceStatus} onChange={handleFilterChange}>
             <option value="">All Statuses</option>
-            <option value="present">Present</option>
-            <option value="absent">Absent / Unmarked</option>
+            <option value="present">Present / Late</option>
+            <option value="absent">Absent</option>
+            <option value="unmarked">Unmarked</option>
           </select>
         </div>
 
@@ -199,13 +200,9 @@ export default function AdminStudents() {
                     transition: 'background-color var(--transition-fast)'
                   }}
                 >
-                  {student.profilePhoto ? (
-                    <img src={student.profilePhoto} alt={student.name} style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                      {student.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff' }}>
+                    {student.name.charAt(0).toUpperCase()}
+                  </div>
                   <div style={{ flexGrow: 1 }}>
                     <h4 style={{ fontSize: '0.98rem', marginBottom: '3px' }}>{student.name}</h4>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{student.course} | {student.branch}</span>
@@ -225,13 +222,9 @@ export default function AdminStudents() {
               {/* Header profile details */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  {selectedStudent.profilePhoto ? (
-                    <img src={selectedStudent.profilePhoto} alt={selectedStudent.name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-primary)' }} />
-                  ) : (
-                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                      {selectedStudent.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
+                    {selectedStudent.name.charAt(0).toUpperCase()}
+                  </div>
                   <div>
                     <h2 style={{ fontSize: '1.3rem', marginBottom: '2px' }}>{selectedStudent.name}</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{selectedStudent.email}</p>
@@ -278,12 +271,12 @@ export default function AdminStudents() {
                   {/* TAB: PROFILE */}
                   {studentTab === 'profile' && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '0.95rem' }}>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>College:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.college}</p></div>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>Department:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.branch}</p></div>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>Internship Course:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.course}</p></div>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>Batch:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.batch}</p></div>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>Phone:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.phone}</p></div>
-                      <div><strong style={{ color: 'var(--text-muted)' }}>Account Status:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.isActive ? 'Active' : 'Deactivated'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>College:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.college || 'N/A'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>Branch:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.branch || 'N/A'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>Internship Course:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.course || 'N/A'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>Batch:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.batch || 'N/A'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>Phone:</strong><p style={{ marginTop: '3px' }}>{selectedStudent.phone || 'N/A'}</p></div>
+                      <div><strong style={{ color: 'var(--text-muted)' }}>Attendance Rate:</strong><p style={{ marginTop: '3px', color: 'var(--color-success)', fontWeight: 'bold' }}>{selectedStudent.attendanceRate}%</p></div>
                     </div>
                   )}
 
@@ -292,11 +285,7 @@ export default function AdminStudents() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>Logged Days: <strong>{studentHistory.length}</strong></span>
-                        <span>Present Rate: <strong style={{ color: 'var(--color-success)' }}>
-                          {studentHistory.length > 0 
-                            ? `${Math.round((studentHistory.filter(h => h.status === 'present').length / studentHistory.length) * 100)}%` 
-                            : '100%'}
-                        </strong></span>
+                        <span>Present Rate: <strong style={{ color: 'var(--color-success)' }}>{selectedStudent.attendanceRate}%</strong></span>
                       </div>
                       
                       {studentHistory.length === 0 ? (
@@ -314,13 +303,13 @@ export default function AdminStudents() {
                             <tbody>
                               {studentHistory.map(record => (
                                 <tr key={record._id}>
-                                  <td>{record.date}</td>
+                                  <td>{new Date(record.date).toLocaleDateString()}</td>
                                   <td>
-                                    <span className={`badge ${record.status === 'present' ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.65rem' }}>
+                                    <span className={`badge ${record.status === 'present' ? 'badge-success' : record.status === 'late' ? 'badge-warning' : 'badge-danger'}`} style={{ fontSize: '0.65rem', textTransform: 'capitalize' }}>
                                       {record.status}
                                     </span>
                                   </td>
-                                  <td>{new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                  <td>{new Date(record.markedAt || record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -348,16 +337,16 @@ export default function AdminStudents() {
                             <div key={submission._id} style={{ padding: '12px', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.01)', fontSize: '0.88rem' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                 <strong>{submission.taskId?.title || 'Unknown Task'}</strong>
-                                <span className={`badge ${submission.status === 'approved' ? 'badge-success' : submission.status === 'rejected' ? 'badge-danger' : 'badge-info'}`} style={{ fontSize: '0.65rem' }}>
+                                <span className={`badge ${submission.status === 'approved' ? 'badge-success' : submission.status === 'rejected' ? 'badge-danger' : 'badge-info'}`} style={{ fontSize: '0.65rem', textTransform: 'capitalize' }}>
                                   {submission.status}
                                 </span>
                               </div>
-                              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '6px' }}>
+                              <p style={{ color: 'var(--text-main)', fontSize: '0.85rem', marginBottom: '6px', background: 'rgba(0,0,0,0.15)', padding: '8px', borderRadius: '4px' }}>
                                 {submission.submissionText}
                               </p>
                               {submission.adminFeedback && (
                                 <p style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)' }}>
-                                  <strong>Feedback:</strong> {submission.adminFeedback}
+                                  <strong>Feedback/Reason:</strong> {submission.adminFeedback}
                                 </p>
                               )}
                             </div>

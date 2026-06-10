@@ -16,18 +16,29 @@ export default function AdminAttendance() {
   const [list, setList] = useState([]);
   const [summary, setSummary] = useState({ total: 0, present: 0, absent: 0 });
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
 
   const fetchAttendance = async () => {
     try {
       setLoading(true);
-      const res = await apiCall(`/attendance/today?date=${selectedDate}`);
+      const res = await apiCall(`/attendance/all?date=${selectedDate}`);
       if (res.ok) {
         const data = await res.json();
-        setList(data.list || []);
-        setSummary(data.summary || { total: 0, present: 0, absent: 0 });
+        const studentsList = data.list || data.data || [];
+        setList(studentsList);
+
+        // Calculate summary
+        const total = studentsList.length;
+        const presentCount = studentsList.filter(item => item.status === 'present' || item.status === 'late').length;
+        const absentCount = studentsList.filter(item => item.status === 'absent').length;
+        setSummary({
+          total,
+          present: presentCount,
+          absent: total - presentCount
+        });
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching attendance:', error);
     } finally {
       setLoading(false);
     }
@@ -37,17 +48,39 @@ export default function AdminAttendance() {
     fetchAttendance();
   }, [selectedDate]);
 
+  const handleStatusUpdate = async (studentId, newStatus) => {
+    try {
+      setUpdatingId(studentId);
+      const res = await apiCall('/attendance/update', {
+        method: 'PUT',
+        body: JSON.stringify({
+          studentId,
+          date: selectedDate,
+          status: newStatus
+        })
+      });
+      if (res.ok) {
+        fetchAttendance(); // Reload list
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to update attendance');
+      }
+    } catch (error) {
+      alert('Error updating attendance: ' + error.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   // Export today's list as CSV
   const handleExportCSV = () => {
     if (list.length === 0) return;
 
-    // Header row
     const headers = ['Student Name', 'Email', 'Course', 'Branch', 'Batch', 'Attendance Status', 'Marked At'];
     
-    // Rows data
     const rows = list.map(item => {
-      const markedAtTime = item.attendance.markedAt 
-        ? new Date(item.attendance.markedAt).toLocaleTimeString() 
+      const markedAtTime = item.markedAt 
+        ? new Date(item.markedAt).toLocaleTimeString() 
         : 'N/A';
       return [
         `"${item.name}"`,
@@ -55,14 +88,13 @@ export default function AdminAttendance() {
         `"${item.course}"`,
         `"${item.branch}"`,
         `"${item.batch}"`,
-        `"${item.attendance.status}"`,
+        `"${item.status}"`,
         `"${markedAtTime}"`
       ];
     });
 
     const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     
-    // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -77,8 +109,8 @@ export default function AdminAttendance() {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Attendance Management</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Inspect daily check-ins and download raw reports.</p>
+        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Attendance Board</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Inspect daily check-ins, manually override status, and download raw reports.</p>
       </div>
 
       {/* Date select & Export actions */}
@@ -115,7 +147,7 @@ export default function AdminAttendance() {
           <span style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{summary.total}</span>
         </div>
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px' }}>
-          <span style={{ color: 'var(--color-success)', fontSize: '0.8rem' }}>Present Count</span>
+          <span style={{ color: 'var(--color-success)', fontSize: '0.8rem' }}>Present / Late Count</span>
           <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-success)' }}>{summary.present}</span>
         </div>
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px 20px' }}>
@@ -142,40 +174,49 @@ export default function AdminAttendance() {
                   <th>Course</th>
                   <th>Branch</th>
                   <th>Batch</th>
-                  <th>Status</th>
+                  <th>Status Selector</th>
                   <th>Marked At</th>
                 </tr>
               </thead>
               <tbody>
-                {list.map(item => {
-                  const subStatus = item.attendance.status;
-                  return (
-                    <tr key={item._id}>
-                      <td style={{ fontWeight: '500' }}>{item.name}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.email}</td>
-                      <td>{item.course}</td>
-                      <td>{item.branch}</td>
-                      <td>{item.batch}</td>
-                      <td>
-                        <span className={`badge ${
-                          subStatus === 'present' 
-                            ? 'badge-success' 
-                            : subStatus === 'absent' 
-                              ? 'badge-danger' 
-                              : 'badge-info'
-                        }`} style={{ fontSize: '0.7rem' }}>
-                          {subStatus}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                        {item.attendance.markedAt 
-                          ? new Date(item.attendance.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                          : 'N/A'
-                        }
-                      </td>
-                    </tr>
-                  );
-                })}
+                {list.map(item => (
+                  <tr key={item._id}>
+                    <td style={{ fontWeight: '500' }}>{item.name}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.email}</td>
+                    <td>{item.course}</td>
+                    <td>{item.branch}</td>
+                    <td>{item.batch}</td>
+                    <td>
+                      <select
+                        disabled={updatingId === item._id}
+                        value={item.status}
+                        onChange={(e) => handleStatusUpdate(item._id, e.target.value)}
+                        className="form-control"
+                        style={{ 
+                          width: '125px', 
+                          padding: '4px 8px', 
+                          height: 'auto', 
+                          fontSize: '0.82rem',
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          color: '#fff',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        <option value="unmarked" style={{ background: '#222' }}>Unmarked</option>
+                        <option value="present" style={{ background: '#222' }}>Present</option>
+                        <option value="absent" style={{ background: '#222' }}>Absent</option>
+                        <option value="late" style={{ background: '#222' }}>Late</option>
+                      </select>
+                    </td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      {item.markedAt 
+                        ? new Date(item.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                        : 'N/A'
+                      }
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

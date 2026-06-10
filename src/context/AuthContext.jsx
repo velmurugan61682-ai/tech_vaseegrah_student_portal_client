@@ -2,14 +2,13 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const AuthContext = createContext();
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Store token helper
   const saveToken = (newToken) => {
     if (newToken) {
       localStorage.setItem('token', newToken);
@@ -20,15 +19,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Base API call helper that handles authorization headers and token refreshes
+  const logoutLocal = () => {
+    saveToken(null);
+    setUser(null);
+  };
+
   const apiCall = async (endpoint, options = {}) => {
-    const url = `${API_BASE_URL}${endpoint}`;
+    let formattedEndpoint = endpoint;
+    if (!endpoint.startsWith('/api') && !endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+      formattedEndpoint = `/api${endpoint}`;
+    }
+    const url = `${API_BASE_URL}${formattedEndpoint}`;
     
-    // Inject headers
     const headers = {
-      'Content-Type': 'application/json',
       ...options.headers,
     };
+
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -39,38 +48,11 @@ export const AuthProvider = ({ children }) => {
       headers,
     };
 
-    // Always include credentials (cookies)
-    config.credentials = 'include';
-
     try {
-      let response = await fetch(url, config);
-
-      // Handle token expiration / unauthorized error
-      if (response.status === 401 && token) {
-        // Attempt to refresh token
-        console.log('Access token expired, attempting refresh...');
-        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include'
-        });
-
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const newTokenValue = refreshData.token;
-          saveToken(newTokenValue);
-
-          // Retry the original request with the new token
-          headers['Authorization'] = `Bearer ${newTokenValue}`;
-          response = await fetch(url, { ...config, headers });
-        } else {
-          // Refresh failed, clear session
-          console.warn('Session expired, logging out...');
-          logoutLocal();
-          return response;
-        }
+      const response = await fetch(url, config);
+      if (response.status === 401) {
+        logoutLocal();
       }
-
       return response;
     } catch (error) {
       console.error('API call exception:', error);
@@ -78,7 +60,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fetch current user details
   const checkAuthStatus = async () => {
     if (!token) {
       setLoading(false);
@@ -94,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         logoutLocal();
       }
     } catch (err) {
-      console.error(err);
+      console.error('Session verify failed:', err);
       logoutLocal();
     } finally {
       setLoading(false);
@@ -105,54 +86,50 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, [token]);
 
-  // Login action
   const login = async (email, password, role) => {
-    const endpoint = role === 'admin' ? '/auth/admin/login' : '/auth/student/login';
-    
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include'
-    });
+    try {
+      const endpoint = role === 'admin' ? '/auth/admin/login' : '/auth/student/login';
+      const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      saveToken(data.token);
-      setUser(data.user);
-      return { success: true };
-    } else {
-      return { success: false, message: data.message || 'Login failed' };
+      if (response.ok) {
+        saveToken(data.token);
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Login failed' };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
     }
   };
 
-  // Register action
   const register = async (userData, role) => {
-    const endpoint = role === 'admin' ? '/auth/admin/register' : '/auth/student/register';
+    try {
+      const endpoint = role === 'admin' ? '/auth/admin/register' : '/auth/student/register';
+      const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-      credentials: 'include'
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (response.ok) {
-      saveToken(data.token);
-      setUser(data.user);
-      return { success: true };
-    } else {
-      return { success: false, message: data.message || 'Registration failed' };
+      if (response.ok) {
+        saveToken(data.token);
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Registration failed' };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
     }
-  };
-
-  // Logout actions
-  const logoutLocal = () => {
-    saveToken(null);
-    setUser(null);
   };
 
   const logout = async () => {
@@ -165,18 +142,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateProfile = async (id, updatedData) => {
+  const updateProfile = async (id, userData) => {
     try {
-      const response = await apiCall(`/students/${id}`, {
+      const response = await apiCall('/student/profile', {
         method: 'PUT',
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify(userData)
       });
       const data = await response.json();
       if (response.ok) {
-        setUser(data.student);
-        return { success: true };
+        setUser(data.student || data.data || data);
+        return { success: true, user: data.student || data.data || data };
       } else {
-        return { success: false, message: data.message || 'Update failed' };
+        return { success: false, message: data.message || 'Profile update failed' };
       }
     } catch (error) {
       return { success: false, message: error.message };
@@ -187,6 +164,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         token,
         loading,
         login,

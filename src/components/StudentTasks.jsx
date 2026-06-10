@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
+
 export default function StudentTasks() {
   const { user, apiCall } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Selected Task to view details / submit response
   const [selectedTask, setSelectedTask] = useState(null);
   const [submissionText, setSubmissionText] = useState('');
+  const [githubLink, setGithubLink] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [docFile, setDocFile] = useState(null);
+  const [docName, setDocName] = useState('');
+  
   const [submitting, setSubmitting] = useState(false);
 
   const fetchTasksAndSubmissions = async () => {
     try {
       setLoading(true);
-      const tasksRes = await apiCall('/tasks');
-      const submissionsRes = await apiCall(`/submissions/student/${user._id}`);
+      const res = await apiCall('/tasks/my');
       
-      if (tasksRes.ok && submissionsRes.ok) {
-        const tasksData = await tasksRes.json();
-        const submissionsData = await submissionsRes.json();
-        
-        setTasks(tasksData.tasks || []);
-        setSubmissions(submissionsData.submissions || []);
+      if (res.ok) {
+        const data = await res.json();
+        const list = data.list || data.data || [];
+        setTasks(list);
       }
     } catch (error) {
-      console.error('Error fetching tasks/submissions:', error);
+      console.error('Error fetching tasks:', error);
     } finally {
       setLoading(false);
     }
@@ -38,10 +42,17 @@ export default function StudentTasks() {
 
   // Map submissions by taskId
   const submissionMap = {};
-  submissions.forEach(sub => {
-    const taskIdStr = sub.taskId?._id || sub.taskId;
-    if (taskIdStr) {
-      submissionMap[taskIdStr.toString()] = sub;
+  tasks.forEach(task => {
+    if (task.submission) {
+      submissionMap[task._id.toString()] = {
+        ...task.submission,
+        submissionText: task.submission.solutionText,
+        githubLink: task.submission.githubLink,
+        imagePath: task.submission.imagePath,
+        documentPath: task.submission.documentPath,
+        adminFeedback: task.submission.rejectionReason,
+        submittedAt: task.submission.submittedAt || new Date()
+      };
     }
   });
 
@@ -49,6 +60,65 @@ export default function StudentTasks() {
     setSelectedTask(task);
     const existing = submissionMap[task._id.toString()];
     setSubmissionText(existing ? existing.submissionText : '');
+    setGithubLink(existing ? existing.githubLink : '');
+    setImageFile(null);
+    setImagePreview('');
+    setDocFile(null);
+    setDocName('');
+  };
+
+  // File Input Change Handlers
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid PNG or JPG image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image file size must be less than 5MB.');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDocChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedExtensions = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedExtensions.includes(file.type) && !['pdf', 'docx', 'doc'].includes(fileExtension)) {
+      alert('Please upload a valid PDF or DOCX document.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Document file size must be less than 10MB.');
+      return;
+    }
+
+    setDocFile(file);
+    setDocName(file.name);
+  };
+
+  const removeImageFile = () => {
+    setImageFile(null);
+    setImagePreview('');
+  };
+
+  const removeDocFile = () => {
+    setDocFile(null);
+    setDocName('');
   };
 
   const handlePostSubmission = async (e) => {
@@ -57,18 +127,31 @@ export default function StudentTasks() {
 
     try {
       setSubmitting(true);
-      const res = await apiCall('/submissions', {
-        method: 'POST',
-        body: JSON.stringify({
-          taskId: selectedTask._id,
-          submissionText
-        })
+      
+      const formDataToSend = new FormData();
+      formDataToSend.append('solutionText', submissionText);
+      formDataToSend.append('githubLink', githubLink);
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
+      if (docFile) {
+        formDataToSend.append('document', docFile);
+      }
+
+      const res = await apiCall(`/tasks/${selectedTask._id}/submit`, {
+        method: 'PUT',
+        body: formDataToSend
       });
 
       if (res.ok) {
         alert('Submission sent successfully!');
         setSelectedTask(null);
         setSubmissionText('');
+        setGithubLink('');
+        setImageFile(null);
+        setImagePreview('');
+        setDocFile(null);
+        setDocName('');
         fetchTasksAndSubmissions();
       } else {
         const data = await res.json();
@@ -135,7 +218,7 @@ export default function StudentTasks() {
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-dark)' }}>
-                        Created by: {task.createdBy?.name || 'Admin'}
+                        Created by: Admin
                       </span>
                       
                       {submission ? (
@@ -198,12 +281,56 @@ export default function StudentTasks() {
                       borderRadius: 'var(--radius-md)', 
                       border: '1px solid var(--glass-border)',
                       fontSize: '0.95rem',
-                      color: 'var(--text-muted)'
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
                     }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dark)', display: 'block', marginBottom: '8px' }}>
-                        Submitted on: {new Date(submissionMap[selectedTask._id.toString()].submittedAt).toLocaleString()}
-                      </span>
-                      {submissionMap[selectedTask._id.toString()].submissionText}
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dark)', display: 'block', marginBottom: '8px' }}>
+                          Submitted on: {new Date(submissionMap[selectedTask._id.toString()].submittedAt).toLocaleString()}
+                        </span>
+                        <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-main)' }}>
+                          {submissionMap[selectedTask._id.toString()].submissionText}
+                        </div>
+                      </div>
+
+                      {submissionMap[selectedTask._id.toString()].githubLink && (
+                        <div style={{ fontSize: '0.9rem' }}>
+                          <strong>GitHub/Project: </strong>
+                          <a href={submissionMap[selectedTask._id.toString()].githubLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+                            {submissionMap[selectedTask._id.toString()].githubLink}
+                          </a>
+                        </div>
+                      )}
+
+                      {(submissionMap[selectedTask._id.toString()].imagePath || submissionMap[selectedTask._id.toString()].documentPath) && (
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
+                          {submissionMap[selectedTask._id.toString()].imagePath && (
+                            <a 
+                              href={`${API_BASE_URL}${submissionMap[selectedTask._id.toString()].imagePath}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="btn btn-secondary" 
+                              style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                            >
+                              View Screenshot
+                            </a>
+                          )}
+                          {submissionMap[selectedTask._id.toString()].documentPath && (
+                            <a 
+                              href={`${API_BASE_URL}${submissionMap[selectedTask._id.toString()].documentPath}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              download
+                              className="btn btn-secondary" 
+                              style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                            >
+                              Download PDF/DOCX
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ 
@@ -252,13 +379,78 @@ export default function StudentTasks() {
                       <label className="form-label">Solution Text / Details</label>
                       <textarea
                         className="form-control"
-                        rows="6"
-                        placeholder="Provide details of your task output, github link, or descriptive answers..."
+                        rows="4"
+                        placeholder="Provide details of your task output, description, or answers..."
                         value={submissionText}
                         onChange={(e) => setSubmissionText(e.target.value)}
                         required
                         style={{ resize: 'vertical' }}
                       />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">GitHub / Project URL</label>
+                      <input
+                        type="url"
+                        className="form-control"
+                        placeholder="https://github.com/..."
+                        value={githubLink}
+                        onChange={(e) => setGithubLink(e.target.value)}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label">Upload Screenshot (PNG, JPG - max 5MB)</label>
+                        <input
+                          type="file"
+                          accept="image/png, image/jpeg, image/jpg"
+                          onChange={handleImageChange}
+                          style={{ display: 'none' }}
+                          id="submit-screenshot"
+                        />
+                        <label htmlFor="submit-screenshot" className="btn btn-secondary" style={{ width: '100%' }}>
+                          Select Image
+                        </label>
+                        {imagePreview && (
+                          <div style={{ position: 'relative', marginTop: '10px', width: '100%', height: '100px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+                            <img src={imagePreview} alt="Screenshot preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button 
+                              type="button" 
+                              onClick={removeImageFile}
+                              style={{ position: 'absolute', top: '5px', right: '5px', background: 'var(--color-danger)', border: 'none', color: '#fff', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Upload Document (PDF, DOCX - max 10MB)</label>
+                        <input
+                          type="file"
+                          accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/msword"
+                          onChange={handleDocChange}
+                          style={{ display: 'none' }}
+                          id="submit-document"
+                        />
+                        <label htmlFor="submit-document" className="btn btn-secondary" style={{ width: '100%' }}>
+                          Select Document
+                        </label>
+                        {docName && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', fontSize: '0.85rem' }}>
+                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '80%' }}>{docName}</span>
+                            <button 
+                              type="button" 
+                              onClick={removeDocFile}
+                              style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '1.2rem', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     <button type="submit" className="btn btn-primary" disabled={submitting || !submissionText.trim()}>
