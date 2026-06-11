@@ -1,6 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as paymentService from '../services/paymentService';
+
+// CountUp component to animate stats
+function CountUp({ end, duration = 1000, prefix = '', suffix = '' }) {
+  const [value, setValue] = useState(() => {
+    const str = String(end);
+    const cleanStr = str.replace(/[₹%,]/g, '');
+    const target = parseFloat(cleanStr);
+    return isNaN(target) ? end : '0';
+  });
+
+  useEffect(() => {
+    const str = String(end);
+    const cleanStr = str.replace(/[₹%,]/g, '');
+    const target = parseFloat(cleanStr);
+    
+    if (isNaN(target)) return;
+
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3); // cubic ease out
+      
+      const current = easeProgress * target;
+      const formattedVal = Number.isInteger(target) ? Math.floor(current).toLocaleString() : current.toFixed(1);
+
+      const hasRupee = str.includes('₹');
+      const hasPercent = str.includes('%');
+      
+      setValue((hasRupee ? '₹' : '') + formattedVal + (hasPercent ? '%' : ''));
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setValue(end);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [end, duration]);
+
+  return <span>{prefix}{value}{suffix}</span>;
+}
 
 export default function StudentPayments() {
   const { showToast } = useAuth();
@@ -42,12 +84,18 @@ export default function StudentPayments() {
       console.error('Error loading student payments history:', error);
       showToast('Failed to load payment history', 'danger');
     } finally {
-      setLoading(false);
+      // simulated delay
+      setTimeout(() => {
+        setLoading(false);
+      }, 400);
     }
   };
 
   useEffect(() => {
-    loadStudentPayments();
+    const timer = setTimeout(() => {
+      loadStudentPayments();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Print PDF Receipt
@@ -62,15 +110,15 @@ export default function StudentPayments() {
             .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, .15); border-radius: 8px; }
             .header-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
             .header-table td { vertical-align: top; }
-            .logo { font-size: 24px; font-weight: bold; color: #6366f1; }
+            .logo { font-size: 24px; font-weight: bold; color: #10b981; }
             .title { font-size: 28px; text-align: right; text-transform: uppercase; color: #555; }
-            .meta-info { margin-bottom: 30px; display: flex; justify-content: space-between; border-top: 2px solid #6366f1; border-bottom: 2px solid #6366f1; padding: 15px 0; }
+            .meta-info { margin-bottom: 30px; display: flex; justify-content: space-between; border-top: 2px solid #10b981; border-bottom: 2px solid #10b981; padding: 15px 0; }
             .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
             .details-table th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold; }
             .details-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
             .totals-panel { text-align: right; margin-top: 20px; font-size: 16px; }
             .totals-panel div { margin-bottom: 8px; }
-            .final-row { font-size: 20px; font-weight: bold; color: #6366f1; margin-top: 10px; border-top: 1px solid #dee2e6; padding-top: 10px; }
+            .final-row { font-size: 20px; font-weight: bold; color: #10b981; margin-top: 10px; border-top: 1px solid #dee2e6; padding-top: 10px; }
             .footer-note { text-align: center; margin-top: 60px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
             .badge { display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
             .badge-Paid { background: #d1fae5; color: #065f46; }
@@ -180,24 +228,20 @@ export default function StudentPayments() {
         ].map((card, index) => (
           <div key={index} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '20px' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500' }}>{card.label}</span>
-            <span style={{ fontSize: '2rem', fontWeight: '800', color: card.color }}>{card.val}</span>
+            <span style={{ fontSize: '2rem', fontWeight: '800', color: card.color }}>
+              <CountUp end={card.val} />
+            </span>
           </div>
         ))}
       </div>
 
       {/* Table Section */}
       {loading ? (
-        <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ 
-            width: '35px', 
-            height: '35px', 
-            border: '3px solid var(--glass-border)', 
-            borderTopColor: 'var(--accent-primary)', 
-            borderRadius: '50%', 
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 15px' 
-          }} />
-          <p>Retrieving payment statements...</p>
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div className="skeleton-card" style={{ height: '300px' }}>
+            <div className="skeleton-line" style={{ width: '200px', height: '24px' }} />
+            <div className="skeleton-line" style={{ width: '100%', height: '180px', marginTop: '20px' }} />
+          </div>
         </div>
       ) : payments.length === 0 ? (
         <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>

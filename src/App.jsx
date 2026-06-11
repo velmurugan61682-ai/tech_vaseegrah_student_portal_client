@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import StudentDashboard from './components/StudentDashboard';
 import StudentAttendance from './components/StudentAttendance';
@@ -16,12 +16,106 @@ import AdminReceipts from './components/AdminReceipts';
 import StudentReceipts from './components/StudentReceipts';
 import StudentLeaves from './components/StudentLeaves';
 import AdminLeaves from './components/AdminLeaves';
+import ParticleBackground from './components/ParticleBackground';
+
+const TechVaseegrahLogo = ({ size = 32 }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 100 100" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ filter: 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.4))' }}
+  >
+    {/* Leaf Outline (horizontal) */}
+    <path 
+      d="M24 43 C24 20, 48 16, 85 50 C48 84, 24 80, 24 57" 
+      stroke="url(#leafGlow)" 
+      strokeWidth="4" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+    {/* Horizontal Center Stem */}
+    <line 
+      x1="12" 
+      y1="50" 
+      x2="82" 
+      y2="50" 
+      stroke="url(#leafGlow)" 
+      strokeWidth="4" 
+      strokeLinecap="round" 
+    />
+    
+    {/* Top left circuit path 1 */}
+    <path d="M44 50 L34 32 L28 32" stroke="url(#leafGlow)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="28" cy="32" r="3.5" fill="#fff" />
+
+    {/* Top middle circuit path 2 */}
+    <path d="M55 50 L42 22 L36 22" stroke="url(#leafGlow)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="36" cy="22" r="3.5" fill="#fff" />
+    
+    {/* Top right circuit path 3 */}
+    <path d="M66 50 L76 34 L82 34" stroke="url(#leafGlow)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="82" cy="34" r="3.5" fill="#fff" />
+
+    {/* Bottom left circuit path 1 */}
+    <path d="M46 50 L36 68 L30 68" stroke="url(#leafGlow)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="30" cy="68" r="3.5" fill="#fff" />
+
+    {/* Bottom right circuit path 2 */}
+    <path d="M58 50 L68 72 L74 72" stroke="url(#leafGlow)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="74" cy="72" r="3.5" fill="#fff" />
+
+    <defs>
+      <linearGradient id="leafGlow" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#10b981" />
+        <stop offset="100%" stopColor="#059669" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 function MainAppContent() {
   const { user, loading, login, register, logout } = useAuth();
   
   // Navigation tabs state
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Global ripple effect handler
+  useEffect(() => {
+    const handleButtonClick = (e) => {
+      const btn = e.target.closest('button, .btn, .btn-primary, .btn-secondary, .btn-success, .btn-danger');
+      if (!btn) return;
+
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple-element';
+
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+
+      const originalPosition = window.getComputedStyle(btn).position;
+      if (originalPosition === 'static') {
+        btn.style.position = 'relative';
+      }
+
+      btn.appendChild(ripple);
+
+      setTimeout(() => {
+        ripple.remove();
+      }, 600);
+    };
+
+    document.addEventListener('mousedown', handleButtonClick);
+    return () => {
+      document.removeEventListener('mousedown', handleButtonClick);
+    };
+  }, []);
   
   // Auth screen state
   const [authRole, setAuthRole] = useState('student'); // student / admin
@@ -79,18 +173,21 @@ function MainAppContent() {
   // Splash Loading Screen
   if (loading) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)', gap: '20px' }}>
-        <div style={{ 
-          width: '50px', 
-          height: '50px', 
-          border: '3px solid var(--glass-border)', 
-          borderTopColor: 'var(--accent-primary)', 
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-        <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em' }}>
-          LOADING INTERNHUB...
-        </p>
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)', gap: '20px', position: 'relative', overflow: 'hidden' }}>
+        <ParticleBackground />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 1 }}>
+          <div style={{ 
+            width: '50px', 
+            height: '50px', 
+            border: '3px solid var(--glass-border)', 
+            borderTopColor: 'var(--accent-primary)', 
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', letterSpacing: '0.1em' }}>
+            LOADING TECH VASEEGRAH...
+          </p>
+        </div>
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -104,15 +201,19 @@ function MainAppContent() {
   // Not Logged In - Render Authentication Portal Selector and Forms
   if (!user) {
     return (
-      <div className="fade-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%), var(--bg-primary)' }}>
-        <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+      <div className="fade-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', overflow: 'hidden' }}>
+        <ParticleBackground />
+        <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '25px', position: 'relative', zIndex: 1 }}>
           
           {/* Brand Header */}
-          <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '6px', fontFamily: 'var(--font-heading)' }}>
-              InternHub
-            </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>Internship Management Portal</p>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <TechVaseegrahLogo size={55} />
+            <div>
+              <h1 style={{ fontSize: '2.2rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '6px', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
+                TECH VASEEGRAH
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '600' }}>Student & Admin Portal</p>
+            </div>
           </div>
 
           {/* Role selector panel */}
@@ -308,17 +409,21 @@ function MainAppContent() {
   const isStudent = user.role === 'student';
 
   return (
-    <div className="layout-wrapper fade-in">
+    <div className="layout-wrapper fade-in" style={{ position: 'relative', overflow: 'hidden' }}>
+      <ParticleBackground />
       
       {/* Dynamic Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar" style={{ position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           {/* Logo brand */}
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'var(--font-heading)' }}>
-              InternHub
-            </h2>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-dark)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.1em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <TechVaseegrahLogo size={32} />
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
+                VASEEGRAH
+              </h2>
+            </div>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.1em' }}>
               {user.role} Workspace
             </span>
           </div>

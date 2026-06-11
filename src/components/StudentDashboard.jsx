@@ -1,5 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+// CountUp component to animate stats
+function CountUp({ end, duration = 1000, prefix = '', suffix = '' }) {
+  const [value, setValue] = useState(() => {
+    const target = parseFloat(end);
+    return isNaN(target) ? end : 0;
+  });
+
+  useEffect(() => {
+    const target = parseFloat(end);
+    if (isNaN(target)) return;
+
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3); // cubic ease out
+      
+      const current = easeProgress * target;
+      if (Number.isInteger(target)) {
+        setValue(Math.floor(current));
+      } else {
+        setValue(current.toFixed(1));
+      }
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setValue(target);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [end, duration]);
+
+  return <span>{prefix}{value}{suffix}</span>;
+}
 
 export default function StudentDashboard({ setActiveTab }) {
   const { user, apiCall } = useAuth();
@@ -44,12 +80,18 @@ export default function StudentDashboard({ setActiveTab }) {
     } catch (error) {
       console.error('Failed to load student dashboard stats:', error);
     } finally {
-      setStatsLoading(false);
+      // Simulate slight delay for animations and skeletons
+      setTimeout(() => {
+        setStatsLoading(false);
+      }, 400);
     }
   };
 
   useEffect(() => {
-    fetchDashboardStats();
+    const timer = setTimeout(() => {
+      fetchDashboardStats();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleMarkAttendance = async (status) => {
@@ -73,6 +115,43 @@ export default function StudentDashboard({ setActiveTab }) {
     }
   };
 
+  if (statsLoading) {
+    return (
+      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        <div>
+          <div className="skeleton-line skeleton-title" style={{ height: '32px', marginBottom: '8px' }} />
+          <div className="skeleton-line skeleton-text-half" style={{ height: '16px' }} />
+        </div>
+        
+        {/* Welcome Widget Skeleton */}
+        <div className="skeleton-card" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '140px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+            <div className="skeleton-line" style={{ width: '80px', height: '18px' }} />
+            <div className="skeleton-line" style={{ width: '220px', height: '28px' }} />
+            <div className="skeleton-line" style={{ width: '380px', height: '16px' }} />
+          </div>
+          <div className="skeleton-circle" />
+        </div>
+
+        {/* Primary Metrics Grid Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="skeleton-card" style={{ height: '200px', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="skeleton-line" style={{ width: '120px', height: '20px' }} />
+                  <div className="skeleton-line" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                </div>
+                <div className="skeleton-line" style={{ width: '180px', height: '32px' }} />
+              </div>
+              <div className="skeleton-line" style={{ width: '100%', height: '38px', borderRadius: 'var(--radius-md)' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div>
@@ -82,7 +161,7 @@ export default function StudentDashboard({ setActiveTab }) {
 
       {/* Welcome & Info Widget */}
       <div className="glass-card" style={{ 
-        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%), var(--glass-bg)',
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%), var(--glass-bg)',
         borderLeft: '4px solid var(--accent-primary)',
         display: 'flex',
         flexWrap: 'wrap',
@@ -103,7 +182,7 @@ export default function StudentDashboard({ setActiveTab }) {
           </div>
         )}
         
-        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 'bold', border: '3px solid var(--accent-primary)', color: '#fff' }}>
+        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 'bold', border: '3px solid var(--accent-primary)', color: '#fff', boxShadow: 'var(--shadow-glow)' }}>
           {user ? user.name.charAt(0).toUpperCase() : 'U'}
         </div>
       </div>
@@ -147,11 +226,8 @@ export default function StudentDashboard({ setActiveTab }) {
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                <div style={{ 
-                  width: '12px', 
-                  height: '12px', 
-                  borderRadius: '50%', 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)' }}>
+                <div className="pulse-glowing-dot" style={{ 
                   backgroundColor: todayAttendance === 'present' ? 'var(--color-success)' : todayAttendance === 'late' ? 'var(--color-warning)' : 'var(--color-danger)' 
                 }} />
                 <div>
@@ -164,7 +240,9 @@ export default function StudentDashboard({ setActiveTab }) {
           
           <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Overall Rate</span>
-            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-success)' }}>{statsLoading ? '...' : `${attendancePercent}%`}</span>
+            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-success)' }}>
+              <CountUp end={attendancePercent} suffix="%" />
+            </span>
           </div>
         </div>
 
@@ -173,7 +251,7 @@ export default function StudentDashboard({ setActiveTab }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ fontSize: '1.2rem' }}>Pending Tasks</h3>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--accent-secondary)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--accent-primary)' }}>
                 <path d="M9 11l3 3L22 4"/>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
               </svg>
@@ -181,7 +259,7 @@ export default function StudentDashboard({ setActiveTab }) {
             
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
               <span style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--text-main)', lineHeight: '1' }}>
-                {statsLoading ? '...' : pendingTasksCount}
+                <CountUp end={pendingTasksCount} />
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>tasks remaining today</span>
             </div>
@@ -208,11 +286,13 @@ export default function StudentDashboard({ setActiveTab }) {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '5px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Approved Solutions</span>
-                  <span style={{ fontWeight: '600' }}>{statsLoading ? '...' : `${taskCompletionRate}%`}</span>
+                  <span style={{ fontWeight: '600' }}>
+                    <CountUp end={taskCompletionRate} suffix="%" />
+                  </span>
                 </div>
                 <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ 
-                    width: `${statsLoading ? 0 : taskCompletionRate}%`, 
+                    width: `${taskCompletionRate}%`, 
                     height: '100%', 
                     background: 'var(--accent-gradient)',
                     borderRadius: '4px',
@@ -224,11 +304,13 @@ export default function StudentDashboard({ setActiveTab }) {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '5px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Attendance Rate</span>
-                  <span style={{ fontWeight: '600' }}>{statsLoading ? '...' : `${attendancePercent}%`}</span>
+                  <span style={{ fontWeight: '600' }}>
+                    <CountUp end={attendancePercent} suffix="%" />
+                  </span>
                 </div>
                 <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ 
-                    width: `${statsLoading ? 0 : attendancePercent}%`, 
+                    width: `${attendancePercent}%`, 
                     height: '100%', 
                     backgroundColor: 'var(--color-success)',
                     borderRadius: '4px',
