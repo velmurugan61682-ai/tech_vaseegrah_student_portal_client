@@ -29,11 +29,17 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log('Session expired. Logging out.');
-      localStorage.removeItem('token');
-      // Dispatch custom event to notify AuthContext to log out React state
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('auth-unauthorized'));
+      const isLoginRequest = error.config && error.config.url && (
+        error.config.url.includes('/auth/admin/login') ||
+        error.config.url.includes('/auth/student/login')
+      );
+      if (!isLoginRequest) {
+        console.log('Session expired. Logging out.');
+        localStorage.removeItem('token');
+        // Dispatch custom event to notify AuthContext to log out React state
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth-unauthorized'));
+        }
       }
     }
     return Promise.reject(error);

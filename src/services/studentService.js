@@ -1,18 +1,18 @@
 import axiosInstance from '../api/axiosInstance';
 
 export const getStudentDashboard = async () => {
-  const res = await axiosInstance.get('/student/dashboard');
+  const res = await axiosInstance.get('/dashboard');
   return res.data;
 };
 
 export const getStudentProfile = async () => {
-  const res = await axiosInstance.get('/student/profile');
+  const res = await axiosInstance.get('/students/profile');
   return res.data;
 };
 
 export const updateStudentProfile = async (formData) => {
   const isForm = formData instanceof FormData;
-  const res = await axiosInstance.put('/student/profile', formData, {
+  const res = await axiosInstance.put('/students/profile', formData, {
     headers: {
       'Content-Type': isForm ? 'multipart/form-data' : 'application/json'
     }

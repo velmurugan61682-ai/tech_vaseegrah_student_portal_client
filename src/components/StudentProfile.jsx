@@ -20,6 +20,49 @@ export default function StudentProfile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Password change states
+  const [passData, setPassData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passSaving, setPassSaving] = useState(false);
+  const [passMsg, setPassMsg] = useState({ text: '', type: '' });
+
+  const handlePassChange = (e) => {
+    setPassData({ ...passData, [e.target.name]: e.target.value });
+  };
+
+  const handlePassSubmit = async (e) => {
+    e.preventDefault();
+    if (passData.newPassword !== passData.confirmPassword) {
+      setPassMsg({ text: 'New passwords do not match!', type: 'error' });
+      return;
+    }
+    if (passData.newPassword.length < 6) {
+      setPassMsg({ text: 'New password must be at least 6 characters!', type: 'error' });
+      return;
+    }
+
+    setPassSaving(true);
+    setPassMsg({ text: '', type: '' });
+
+    try {
+      const authService = await import('../services/authService');
+      const res = await authService.changePassword(passData.currentPassword, passData.newPassword);
+      if (res.success) {
+        setPassMsg({ text: 'Password updated successfully!', type: 'success' });
+        setPassData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPassMsg({ text: res.message || 'Failed to update password', type: 'error' });
+      }
+    } catch (err) {
+      setPassMsg({ text: err.response?.data?.message || err.message, type: 'error' });
+    } finally {
+      setPassSaving(false);
+    }
+  };
+
   // Handle image conversion to Base64
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -213,6 +256,76 @@ export default function StudentProfile() {
 
         </form>
       </div>
+
+      {/* Change Password Card */}
+      <div className="glass-card" style={{ marginTop: '20px' }}>
+        <h2 style={{ fontSize: '1.3rem', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>
+          Change Password
+        </h2>
+
+        {passMsg.text && (
+          <div style={{ 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            background: passMsg.type === 'success' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid',
+            borderColor: passMsg.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
+            color: passMsg.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)',
+            fontSize: '0.95rem',
+            marginBottom: '20px'
+          }}>
+            {passMsg.text}
+          </div>
+        )}
+
+        <form onSubmit={handlePassSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Current Password*</label>
+              <input 
+                type="password" 
+                name="currentPassword" 
+                className="form-control" 
+                value={passData.currentPassword}
+                onChange={handlePassChange}
+                required 
+              />
+            </div>
+            
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">New Password*</label>
+              <input 
+                type="password" 
+                name="newPassword" 
+                className="form-control" 
+                placeholder="Min 6 characters"
+                value={passData.newPassword}
+                onChange={handlePassChange}
+                required 
+              />
+            </div>
+            
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Confirm New Password*</label>
+              <input 
+                type="password" 
+                name="confirmPassword" 
+                className="form-control" 
+                value={passData.confirmPassword}
+                onChange={handlePassChange}
+                required 
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <button type="submit" className="btn btn-primary" disabled={passSaving} style={{ minWidth: '150px' }}>
+              {passSaving ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      </div>
+
     </div>
   );
 }

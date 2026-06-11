@@ -29,3 +29,8 @@ export const getMe = async () => {
   const res = await axiosInstance.get('/auth/me');
   return res.data;
 };
+
+export const changePassword = async (currentPassword, newPassword) => {
+  const res = await axiosInstance.put('/auth/change-password', { currentPassword, newPassword });
+  return res.data;
+};

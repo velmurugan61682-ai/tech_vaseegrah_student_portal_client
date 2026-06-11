@@ -45,8 +45,15 @@ export default function AdminReceipts() {
 
   // Email Editor Form State
   const [emailForm, setEmailForm] = useState({
-    subject: 'Tech Vaseegrah Internship Payment Receipt',
-    message: `Dear {{studentName}},\n\nYour internship payment has been successfully recorded.\n\nReceipt Number:\n{{receiptNumber}}\n\nCourse:\n{{courseName}}\n\nAmount Paid:\n{{amount}}\n\nPayment Method:\n{{paymentMethod}}\n\nPlease find your payment receipt PDF attached.\n\nRegards,\nTech Vaseegrah Internship Team`
+    subject: 'Internship Fee Payment Receipt',
+    message: `Dear Student,
+
+Your internship payment has been successfully verified.
+
+Please find the attached receipt PDF.
+
+Regards,
+InternHub Accounts Team`
   });
 
   // Fetch receipts and summaries
@@ -132,8 +139,15 @@ export default function AdminReceipts() {
     
     // Set baseline subject and body
     setEmailForm({
-      subject: 'Tech Vaseegrah Internship Payment Receipt',
-      message: `Dear {{studentName}},\n\nYour internship payment has been successfully recorded.\n\nReceipt Number:\n{{receiptNumber}}\n\nCourse:\n{{courseName}}\n\nAmount Paid:\n{{amount}}\n\nPayment Method:\n{{paymentMethod}}\n\nPlease find your payment receipt PDF attached.\n\nRegards,\nTech Vaseegrah Internship Team`
+      subject: 'Internship Fee Payment Receipt',
+      message: `Dear Student,
+
+Your internship payment has been successfully verified.
+
+Please find the attached receipt PDF.
+
+Regards,
+InternHub Accounts Team`
     });
     setShowEmailModal(true);
   };
