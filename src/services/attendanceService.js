@@ -36,3 +36,9 @@ export const downloadAttendanceCSV = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
   window.open(`${API_BASE_URL}/api/attendance/export?token=${token}`, '_blank');
 };
+
+export const getAttendanceByDate = async (date, branchId = '') => {
+  const params = branchId ? { branchId } : {};
+  const res = await axiosInstance.get(`/attendance/date/${date}`, { params });
+  return res.data;
+};

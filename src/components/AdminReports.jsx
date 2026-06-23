@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminReports() {
-  const { apiCall } = useAuth();
+  const { apiCall, socket } = useAuth();
   
   const [activeTab, setActiveTab] = useState('attendance'); // attendance / performance / activity
   const [loading, setLoading] = useState(true);
@@ -20,6 +20,44 @@ export default function AdminReports() {
   const [activityLog, setActivityLog] = useState([]);
   const [activityStats, setActivityStats] = useState({ loginsToday: 0, submissionsToday: 0, attendanceToday: 0, alertsCount: 0 });
   const [activityFilter, setActivityFilter] = useState('all'); // all / login / tasks / attendance / alerts
+
+  // Real-time socket updates for activity logs
+  useEffect(() => {
+    if (socket) {
+      console.log('📡 Subscribed to real-time activity log socket updates');
+      const handleNewActivity = (newLog) => {
+        setActivityLog((prev) => {
+          // Prevent duplicates
+          if (prev.some(l => l._id === newLog._id)) return prev;
+          
+          const mappedLog = {
+            ...newLog,
+            studentName: newLog.userName,
+            details: newLog.description,
+            course: newLog.role === 'admin' ? 'Admin' : 'Student'
+          };
+          return [mappedLog, ...prev];
+        });
+
+        setActivityStats((prev) => {
+          let { loginsToday = 0, submissionsToday = 0, attendanceToday = 0, alertsCount = 0 } = prev;
+          if (newLog.action === 'login') loginsToday++;
+          else if (newLog.action === 'task_submit') submissionsToday++;
+          else if (newLog.action === 'attendance') attendanceToday++;
+          
+          if (['task_rejected', 'deadline_missed', 'absent'].includes(newLog.action)) {
+            alertsCount++;
+          }
+          return { loginsToday, submissionsToday, attendanceToday, alertsCount };
+        });
+      };
+
+      socket.on('activity_log', handleNewActivity);
+      return () => {
+        socket.off('activity_log', handleNewActivity);
+      };
+    }
+  }, [socket]);
 
   const fetchReports = async () => {
     try {
@@ -40,12 +78,28 @@ export default function AdminReports() {
           setCourseBreakdown(data.courseBreakdown || []);
         }
       } else if (activeTab === 'activity') {
-        const res = await apiCall('/logs');
+        const res = await apiCall('/activity');
+        const statsRes = await apiCall('/activity/stats');
+        
+        let logsData = [];
+        let statsData = { loginsToday: 0, submissionsToday: 0, attendanceToday: 0, alertsCount: 0 };
+        
         if (res.ok) {
           const data = await res.json();
-          setActivityLog(data.logs || data.data || []);
-          setActivityStats(data.stats || { loginsToday: 0, submissionsToday: 0, attendanceToday: 0, alertsCount: 0 });
+          logsData = data.logs || data.data || [];
         }
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          statsData = data.stats || data;
+          
+          // Fallback map fields if stats object is nested differently
+          if (data.stats) {
+            statsData = data.stats;
+          }
+        }
+        
+        setActivityLog(logsData);
+        setActivityStats(statsData);
       }
     } catch (error) {
       console.error('Error fetching reports:', error);

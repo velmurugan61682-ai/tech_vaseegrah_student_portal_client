@@ -21,7 +21,7 @@ export function DarkInput({ type = 'text', style, onFocus, onBlur, ...props }) {
   }
 
   const baseStyle = {
-    background: isFocused 
+    backgroundColor: isFocused 
       ? 'rgba(0, 230, 168, 0.03)' 
       : (isHovered ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)'),
     border: '1px solid',
@@ -68,7 +68,7 @@ export function DarkSelect({ style, onFocus, onBlur, children, ...props }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const baseStyle = {
-    background: isFocused 
+    backgroundColor: isFocused 
       ? 'rgba(0, 230, 168, 0.03)' 
       : (isHovered ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)'),
     border: '1px solid',
@@ -118,7 +118,7 @@ export function DarkSelect({ style, onFocus, onBlur, children, ...props }) {
           // ensure options have dark background
           return React.cloneElement(child, {
             style: {
-              background: 'var(--bg-secondary)',
+              backgroundColor: 'var(--bg-secondary)',
               color: '#fff',
               ...child.props.style
             }

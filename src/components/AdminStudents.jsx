@@ -48,7 +48,7 @@ export default function AdminStudents() {
     phone: '',
     college: '',
     department: '',
-    branch: 'CSE',
+    branchId: '',
     course: 'MERN Stack',
     batch: '2024-26',
     startDate: '',
@@ -63,7 +63,7 @@ export default function AdminStudents() {
     phone: '',
     college: '',
     department: '',
-    branch: '',
+    branchId: '',
     course: '',
     batch: '',
     startDate: '',
@@ -100,7 +100,7 @@ export default function AdminStudents() {
           list = list.filter(s => 
             s.name.toLowerCase().includes(query) || 
             s.email.toLowerCase().includes(query) ||
-            s.college.toLowerCase().includes(query)
+            (s.college && s.college.toLowerCase().includes(query))
           );
         }
         setStudents(list);
@@ -109,7 +109,14 @@ export default function AdminStudents() {
       // Fetch branches for options
       const bData = await branchService.getBranches();
       if (bData.success) {
-        setBranches(bData.branches || []);
+        const branchesList = bData.branches || [];
+        setBranches(branchesList);
+        if (branchesList.length > 0) {
+          setAddForm(prev => ({
+            ...prev,
+            branchId: prev.branchId || branchesList[0]._id
+          }));
+        }
       }
     } catch (error) {
       console.error(error);
@@ -186,7 +193,7 @@ export default function AdminStudents() {
           phone: '',
           college: '',
           department: '',
-          branch: 'CSE',
+          branchId: branches.length > 0 ? branches[0]._id : '',
           course: 'MERN Stack',
           batch: '2024-26',
           startDate: '',
@@ -213,7 +220,7 @@ export default function AdminStudents() {
       phone: student.phone || '',
       college: student.college || '',
       department: student.department || '',
-      branch: student.branch || '',
+      branchId: student.branchId || '',
       course: student.course || '',
       batch: student.batch || '',
       startDate: student.startDate ? student.startDate.split('T')[0] : '',
@@ -226,8 +233,6 @@ export default function AdminStudents() {
 
   // Edit Student Handler
   const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setFormLoading(true);
     
     try {
       const formData = new FormData();
@@ -523,9 +528,9 @@ export default function AdminStudents() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Branch</label>
-                  <DarkSelect  value={addForm.branch} onChange={(e) => setAddForm({...addForm, branch: e.target.value})}>
+                  <DarkSelect value={addForm.branchId} onChange={(e) => setAddForm({...addForm, branchId: e.target.value})}>
                     {branches.map(b => (
-                      <option key={b._id} value={b.branchName}>{b.branchName}</option>
+                      <option key={b._id} value={b._id}>{b.branchName}</option>
                     ))}
                   </DarkSelect>
                 </div>
@@ -628,9 +633,9 @@ export default function AdminStudents() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Branch</label>
-                  <DarkSelect  value={editForm.branch} onChange={(e) => setEditForm({...editForm, branch: e.target.value})}>
+                  <DarkSelect value={editForm.branchId} onChange={(e) => setEditForm({...editForm, branchId: e.target.value})}>
                     {branches.map(b => (
-                      <option key={b._id} value={b.branchName}>{b.branchName}</option>
+                      <option key={b._id} value={b._id}>{b.branchName}</option>
                     ))}
                   </DarkSelect>
                 </div>
