@@ -18,14 +18,14 @@ import StudentLeaves from './components/StudentLeaves';
 import AdminLeaves from './components/AdminLeaves';
 import ParticleBackground from './components/ParticleBackground';
 
-const TechVaseegrahLogo = ({ size = 32 }) => (
+const Logo = ({ size = 32 }) => (
   <svg 
     width={size} 
     height={size} 
     viewBox="0 0 100 100" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    style={{ filter: 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.4))' }}
+    style={{ filter: 'drop-shadow(0 0 8px rgba(0, 230, 168, 0.4))' }}
   >
     {/* Leaf Outline (horizontal) */}
     <path 
@@ -68,8 +68,8 @@ const TechVaseegrahLogo = ({ size = 32 }) => (
 
     <defs>
       <linearGradient id="leafGlow" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#10b981" />
-        <stop offset="100%" stopColor="#059669" />
+        <stop offset="0%" stopColor="#00E6A8" />
+        <stop offset="100%" stopColor="#7C4DFF" />
       </linearGradient>
     </defs>
   </svg>
@@ -185,7 +185,7 @@ function MainAppContent() {
             animation: 'spin 1s linear infinite'
           }} />
           <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', letterSpacing: '0.1em' }}>
-            LOADING TECH VASEEGRAH...
+            LOADING INTERNHUB...
           </p>
         </div>
         <style>{`
@@ -207,10 +207,10 @@ function MainAppContent() {
           
           {/* Brand Header */}
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-            <TechVaseegrahLogo size={55} />
+            <Logo size={55} />
             <div>
               <h1 style={{ fontSize: '2.2rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '6px', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
-                TECH VASEEGRAH
+                INTERNHUB
               </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '600' }}>Student & Admin Portal</p>
             </div>
@@ -418,9 +418,9 @@ function MainAppContent() {
           {/* Logo brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <TechVaseegrahLogo size={32} />
+              <Logo size={32} />
               <h2 style={{ fontSize: '1.25rem', fontWeight: '800', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
-                VASEEGRAH
+                INTERNHUB
               </h2>
             </div>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.1em' }}>

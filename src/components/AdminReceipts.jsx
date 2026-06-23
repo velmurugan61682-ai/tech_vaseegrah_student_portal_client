@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as receiptService from '../services/receiptService';
@@ -246,9 +247,9 @@ InternHub Accounts Team`
           
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Search Receipts</label>
-            <input 
-              type="text" 
-              className="form-control"
+            <DarkSearch 
+               
+              
               placeholder="Search student name, email, receipt number..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -257,8 +258,8 @@ InternHub Accounts Team`
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '160px' }}>
             <label className="form-label">Internship Track</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.course}
               onChange={(e) => setFilters({ ...filters, course: e.target.value })}
             >
@@ -266,13 +267,13 @@ InternHub Accounts Team`
               <option value="MERN Stack">MERN Stack</option>
               <option value="Python">Python</option>
               <option value="AI & ML">AI & ML</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '150px' }}>
             <label className="form-label">Receipt Status</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
@@ -281,7 +282,7 @@ InternHub Accounts Team`
               <option value="Pending">Pending</option>
               <option value="Failed">Failed</option>
               <option value="Refunded">Refunded</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <button type="submit" className="btn btn-secondary" style={{ height: '46px', padding: '0 25px' }}>
@@ -389,19 +390,19 @@ InternHub Accounts Team`
                 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Student Name</label>
-                  <input type="text" className="form-control" value={selectedReceipt.studentName} disabled style={disabledInputStyle} />
+                  <DarkInput type="text"  value={selectedReceipt.studentName} disabled style={disabledInputStyle} />
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Internship Program</label>
-                  <input type="text" className="form-control" value={selectedReceipt.courseName} disabled style={disabledInputStyle} />
+                  <DarkInput type="text"  value={selectedReceipt.courseName} disabled style={disabledInputStyle} />
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Amount Paid (₹)*</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={editForm.amountPaid}
                     onChange={(e) => setEditForm({ ...editForm, amountPaid: parseFloat(e.target.value) || 0 })}
                     required
@@ -411,9 +412,9 @@ InternHub Accounts Team`
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Balance Due (₹)*</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={editForm.balanceDue}
                     onChange={(e) => setEditForm({ ...editForm, balanceDue: parseFloat(e.target.value) || 0 })}
                     required
@@ -423,8 +424,8 @@ InternHub Accounts Team`
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Status*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={editForm.paymentStatus}
                     onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
                     required
@@ -433,7 +434,7 @@ InternHub Accounts Team`
                     <option value="Pending">Pending</option>
                     <option value="Failed">Failed</option>
                     <option value="Refunded">Refunded</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
               </div>
@@ -478,14 +479,14 @@ InternHub Accounts Team`
                 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Student Recipient</label>
-                  <input type="text" className="form-control" value={`${selectedReceipt.studentName} <${selectedReceipt.email}>`} disabled style={disabledInputStyle} />
+                  <DarkInput type="text"  value={`${selectedReceipt.studentName} <${selectedReceipt.email}>`} disabled style={disabledInputStyle} />
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Email Subject Line</label>
-                  <input 
+                  <DarkInput 
                     type="text" 
-                    className="form-control" 
+                     
                     value={emailForm.subject}
                     onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
                   />

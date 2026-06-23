@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as adminService from '../services/adminService';
@@ -325,54 +326,54 @@ export default function AdminStudents() {
       <div className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end' }}>
         <div className="form-group" style={{ flex: 1.5, minWidth: '200px', marginBottom: 0 }}>
           <label className="form-label">Search Student</label>
-          <input 
-            type="text" 
+          <DarkSearch 
+             
             name="search"
             value={filters.search} 
             onChange={handleFilterChange} 
-            className="form-control" 
+             
             placeholder="Search by name, email or college..." 
           />
         </div>
 
         <div className="form-group" style={{ flex: 1, minWidth: '150px', marginBottom: 0 }}>
           <label className="form-label">CourseTrack</label>
-          <select name="course" className="form-control" value={filters.course} onChange={handleFilterChange}>
+          <DarkSelect name="course"  value={filters.course} onChange={handleFilterChange}>
             <option value="">All Courses</option>
             <option value="MERN Stack">MERN Stack</option>
             <option value="Python">Python</option>
             <option value="AI & ML">AI & ML</option>
-          </select>
+          </DarkSelect>
         </div>
 
         <div className="form-group" style={{ flex: 1, minWidth: '150px', marginBottom: 0 }}>
           <label className="form-label">Branch</label>
-          <select name="branch" className="form-control" value={filters.branch} onChange={handleFilterChange}>
+          <DarkSelect name="branch"  value={filters.branch} onChange={handleFilterChange}>
             <option value="">All Branches</option>
             {branches.map(b => (
               <option key={b._id} value={b.branchName}>{b.branchName}</option>
             ))}
-          </select>
+          </DarkSelect>
         </div>
 
         <div className="form-group" style={{ flex: 1, minWidth: '120px', marginBottom: 0 }}>
           <label className="form-label">Batch</label>
-          <select name="batch" className="form-control" value={filters.batch} onChange={handleFilterChange}>
+          <DarkSelect name="batch"  value={filters.batch} onChange={handleFilterChange}>
             <option value="">All Batches</option>
             <option value="2023-25">2023-25</option>
             <option value="2024-26">2024-26</option>
             <option value="2025-27">2025-27</option>
-          </select>
+          </DarkSelect>
         </div>
 
         <div className="form-group" style={{ flex: 1, minWidth: '140px', marginBottom: 0 }}>
           <label className="form-label">Attendance status</label>
-          <select name="attendanceStatus" className="form-control" value={filters.attendanceStatus} onChange={handleFilterChange}>
+          <DarkSelect name="attendanceStatus"  value={filters.attendanceStatus} onChange={handleFilterChange}>
             <option value="">All Statuses</option>
             <option value="present">Present / Late Today</option>
             <option value="absent">Absent Today</option>
             <option value="unmarked">Unmarked Today</option>
-          </select>
+          </DarkSelect>
         </div>
 
         <button onClick={clearFilters} className="btn btn-secondary" style={{ height: '45px' }}>
@@ -489,75 +490,75 @@ export default function AdminStudents() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Full Name</label>
-                  <input type="text" className="form-control" required value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="e.g. John Doe" />
+                  <DarkInput type="text"  required value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="e.g. John Doe" />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Email Address</label>
-                  <input type="email" className="form-control" required value={addForm.email} onChange={(e) => setAddForm({...addForm, email: e.target.value})} placeholder="e.g. john@domain.com" />
+                  <DarkInput type="email"  required value={addForm.email} onChange={(e) => setAddForm({...addForm, email: e.target.value})} placeholder="e.g. john@domain.com" />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Login Password</label>
-                  <input type="password" className="form-control" required value={addForm.password} onChange={(e) => setAddForm({...addForm, password: e.target.value})} placeholder="At least 6 characters" />
+                  <DarkInput type="password"  required value={addForm.password} onChange={(e) => setAddForm({...addForm, password: e.target.value})} placeholder="At least 6 characters" />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Phone Number</label>
-                  <input type="tel" className="form-control" value={addForm.phone} onChange={(e) => setAddForm({...addForm, phone: e.target.value})} placeholder="Mobile phone" />
+                  <DarkInput type="tel"  value={addForm.phone} onChange={(e) => setAddForm({...addForm, phone: e.target.value})} placeholder="Mobile phone" />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">College Name</label>
-                  <input type="text" className="form-control" value={addForm.college} onChange={(e) => setAddForm({...addForm, college: e.target.value})} placeholder="College name" />
+                  <DarkInput type="text"  value={addForm.college} onChange={(e) => setAddForm({...addForm, college: e.target.value})} placeholder="College name" />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Department</label>
-                  <input type="text" className="form-control" value={addForm.department} onChange={(e) => setAddForm({...addForm, department: e.target.value})} placeholder="e.g. Information Technology" />
+                  <DarkInput type="text"  value={addForm.department} onChange={(e) => setAddForm({...addForm, department: e.target.value})} placeholder="e.g. Information Technology" />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Branch</label>
-                  <select className="form-control" value={addForm.branch} onChange={(e) => setAddForm({...addForm, branch: e.target.value})}>
+                  <DarkSelect  value={addForm.branch} onChange={(e) => setAddForm({...addForm, branch: e.target.value})}>
                     {branches.map(b => (
                       <option key={b._id} value={b.branchName}>{b.branchName}</option>
                     ))}
-                  </select>
+                  </DarkSelect>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">CourseTrack</label>
-                  <select className="form-control" value={addForm.course} onChange={(e) => setAddForm({...addForm, course: e.target.value})}>
+                  <DarkSelect  value={addForm.course} onChange={(e) => setAddForm({...addForm, course: e.target.value})}>
                     <option value="MERN Stack">MERN Stack</option>
                     <option value="Python">Python</option>
                     <option value="AI & ML">AI & ML</option>
-                  </select>
+                  </DarkSelect>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Batch</label>
-                  <select className="form-control" value={addForm.batch} onChange={(e) => setAddForm({...addForm, batch: e.target.value})}>
+                  <DarkSelect  value={addForm.batch} onChange={(e) => setAddForm({...addForm, batch: e.target.value})}>
                     <option value="2023-25">2023-25</option>
                     <option value="2024-26">2024-26</option>
                     <option value="2025-27">2025-27</option>
-                  </select>
+                  </DarkSelect>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Start Date</label>
-                  <input type="date" className="form-control" value={addForm.startDate} onChange={(e) => setAddForm({...addForm, startDate: e.target.value})} />
+                  <DarkInput type="date"  value={addForm.startDate} onChange={(e) => setAddForm({...addForm, startDate: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">End Date</label>
-                  <input type="date" className="form-control" value={addForm.endDate} onChange={(e) => setAddForm({...addForm, endDate: e.target.value})} />
+                  <DarkInput type="date"  value={addForm.endDate} onChange={(e) => setAddForm({...addForm, endDate: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Duration</label>
-                  <input type="text" className="form-control" value={addForm.internshipDuration} onChange={(e) => setAddForm({...addForm, internshipDuration: e.target.value})} placeholder="e.g. 3 Months" />
+                  <DarkInput type="text"  value={addForm.internshipDuration} onChange={(e) => setAddForm({...addForm, internshipDuration: e.target.value})} placeholder="e.g. 3 Months" />
                 </div>
               </div>
 
@@ -590,79 +591,79 @@ export default function AdminStudents() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Full Name</label>
-                  <input type="text" className="form-control" required value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} />
+                  <DarkInput type="text"  required value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Email Address</label>
-                  <input type="email" className="form-control" required value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} />
+                  <DarkInput type="email"  required value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Phone Number</label>
-                  <input type="tel" className="form-control" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} />
+                  <DarkInput type="tel"  value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Internship Status</label>
-                  <select className="form-control" value={editForm.status} onChange={(e) => setEditForm({...editForm, status: e.target.value})}>
+                  <DarkSelect  value={editForm.status} onChange={(e) => setEditForm({...editForm, status: e.target.value})}>
                     <option value="Active">Active</option>
                     <option value="At Risk">At Risk</option>
                     <option value="Inactive">Inactive</option>
-                  </select>
+                  </DarkSelect>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">College Name</label>
-                  <input type="text" className="form-control" value={editForm.college} onChange={(e) => setEditForm({...editForm, college: e.target.value})} />
+                  <DarkInput type="text"  value={editForm.college} onChange={(e) => setEditForm({...editForm, college: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Department</label>
-                  <input type="text" className="form-control" value={editForm.department} onChange={(e) => setEditForm({...editForm, department: e.target.value})} />
+                  <DarkInput type="text"  value={editForm.department} onChange={(e) => setEditForm({...editForm, department: e.target.value})} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Branch</label>
-                  <select className="form-control" value={editForm.branch} onChange={(e) => setEditForm({...editForm, branch: e.target.value})}>
+                  <DarkSelect  value={editForm.branch} onChange={(e) => setEditForm({...editForm, branch: e.target.value})}>
                     {branches.map(b => (
                       <option key={b._id} value={b.branchName}>{b.branchName}</option>
                     ))}
-                  </select>
+                  </DarkSelect>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">CourseTrack</label>
-                  <select className="form-control" value={editForm.course} onChange={(e) => setEditForm({...editForm, course: e.target.value})}>
+                  <DarkSelect  value={editForm.course} onChange={(e) => setEditForm({...editForm, course: e.target.value})}>
                     <option value="MERN Stack">MERN Stack</option>
                     <option value="Python">Python</option>
                     <option value="AI & ML">AI & ML</option>
-                  </select>
+                  </DarkSelect>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Batch</label>
-                  <select className="form-control" value={editForm.batch} onChange={(e) => setEditForm({...editForm, batch: e.target.value})}>
+                  <DarkSelect  value={editForm.batch} onChange={(e) => setEditForm({...editForm, batch: e.target.value})}>
                     <option value="2023-25">2023-25</option>
                     <option value="2024-26">2024-26</option>
                     <option value="2025-27">2025-27</option>
-                  </select>
+                  </DarkSelect>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Start Date</label>
-                  <input type="date" className="form-control" value={editForm.startDate} onChange={(e) => setEditForm({...editForm, startDate: e.target.value})} />
+                  <DarkInput type="date"  value={editForm.startDate} onChange={(e) => setEditForm({...editForm, startDate: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">End Date</label>
-                  <input type="date" className="form-control" value={editForm.endDate} onChange={(e) => setEditForm({...editForm, endDate: e.target.value})} />
+                  <DarkInput type="date"  value={editForm.endDate} onChange={(e) => setEditForm({...editForm, endDate: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Duration</label>
-                  <input type="text" className="form-control" value={editForm.internshipDuration} onChange={(e) => setEditForm({...editForm, internshipDuration: e.target.value})} />
+                  <DarkInput type="text"  value={editForm.internshipDuration} onChange={(e) => setEditForm({...editForm, internshipDuration: e.target.value})} />
                 </div>
               </div>
 
@@ -688,9 +689,9 @@ export default function AdminStudents() {
             <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Task Title</label>
-                <input 
+                <DarkInput 
                   type="text" 
-                  className="form-control" 
+                   
                   required 
                   placeholder="e.g. Implement MongoDB Schema validations"
                   value={taskForm.title} 
@@ -712,9 +713,9 @@ export default function AdminStudents() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Due Date</label>
-                  <input 
+                  <DarkInput 
                     type="date" 
-                    className="form-control" 
+                     
                     required 
                     value={taskForm.dueDate} 
                     onChange={(e) => setTaskForm({...taskForm, dueDate: e.target.value})} 
@@ -722,11 +723,11 @@ export default function AdminStudents() {
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Priority</label>
-                  <select className="form-control" value={taskForm.priority} onChange={(e) => setTaskForm({...taskForm, priority: e.target.value})}>
+                  <DarkSelect  value={taskForm.priority} onChange={(e) => setTaskForm({...taskForm, priority: e.target.value})}>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
-                  </select>
+                  </DarkSelect>
                 </div>
               </div>
 

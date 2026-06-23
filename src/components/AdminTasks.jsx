@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -287,9 +288,9 @@ export default function AdminTasks() {
             
             <div className="form-group">
               <label className="form-label">Task Title</label>
-              <input 
+              <DarkInput 
                 type="text" 
-                className="form-control" 
+                 
                 placeholder="e.g. Implement JWT authentication flow"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -312,9 +313,9 @@ export default function AdminTasks() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className="form-group">
                 <label className="form-label">Due Date</label>
-                <input 
+                <DarkInput 
                   type="date" 
-                  className="form-control" 
+                   
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
                   required
@@ -323,51 +324,51 @@ export default function AdminTasks() {
 
               <div className="form-group">
                 <label className="form-label">Priority Level</label>
-                <select 
-                  className="form-control"
+                <DarkSelect 
+                  
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
-                </select>
+                </DarkSelect>
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Assign To</label>
-              <select 
-                className="form-control"
+              <DarkSelect 
+                
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
               >
                 <option value="all">All Registered Students</option>
                 <option value="course">Entire Course Track</option>
                 <option value="student">Specific Student</option>
-              </select>
+              </DarkSelect>
             </div>
 
             {formData.assignedTo === 'course' && (
               <div className="form-group fade-in">
                 <label className="form-label">Select Course</label>
-                <select 
-                  className="form-control"
+                <DarkSelect 
+                  
                   value={formData.course}
                   onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                 >
                   <option value="Python">Python</option>
                   <option value="MERN Stack">MERN Stack</option>
                   <option value="AI & ML">AI & ML</option>
-                </select>
+                </DarkSelect>
               </div>
             )}
 
             {formData.assignedTo === 'student' && (
               <div className="form-group fade-in">
                 <label className="form-label">Select Student</label>
-                <select 
-                  className="form-control"
+                <DarkSelect 
+                  
                   value={formData.studentId}
                   onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                   required
@@ -376,7 +377,7 @@ export default function AdminTasks() {
                   {students.map(s => (
                     <option key={s._id} value={s._id}>{s.name} ({s.course})</option>
                   ))}
-                </select>
+                </DarkSelect>
               </div>
             )}
 
@@ -449,9 +450,9 @@ export default function AdminTasks() {
                       
                       <div className="form-group">
                         <label className="form-label">Task Title</label>
-                        <input 
+                        <DarkInput 
                           type="text" 
-                          className="form-control" 
+                           
                           value={editFormData.title}
                           onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                           required
@@ -472,9 +473,9 @@ export default function AdminTasks() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div className="form-group">
                           <label className="form-label">Due Date</label>
-                          <input 
+                          <DarkInput 
                             type="date" 
-                            className="form-control" 
+                             
                             value={editFormData.dueDate}
                             onChange={(e) => setEditFormData({ ...editFormData, dueDate: e.target.value })}
                             required
@@ -483,51 +484,51 @@ export default function AdminTasks() {
 
                         <div className="form-group">
                           <label className="form-label">Priority Level</label>
-                          <select 
-                            className="form-control"
+                          <DarkSelect 
+                            
                             value={editFormData.priority}
                             onChange={(e) => setEditFormData({ ...editFormData, priority: e.target.value })}
                           >
                             <option value="Low">Low</option>
                             <option value="Medium">Medium</option>
                             <option value="High">High</option>
-                          </select>
+                          </DarkSelect>
                         </div>
                       </div>
 
                       <div className="form-group">
                         <label className="form-label">Assign To</label>
-                        <select 
-                          className="form-control"
+                        <DarkSelect 
+                          
                           value={editFormData.assignedTo}
                           onChange={(e) => setEditFormData({ ...editFormData, assignedTo: e.target.value })}
                         >
                           <option value="all">All Registered Students</option>
                           <option value="course">Entire Course Track</option>
                           <option value="student">Specific Student</option>
-                        </select>
+                        </DarkSelect>
                       </div>
 
                       {editFormData.assignedTo === 'course' && (
                         <div className="form-group fade-in">
                           <label className="form-label">Select Course</label>
-                          <select 
-                            className="form-control"
+                          <DarkSelect 
+                            
                             value={editFormData.course}
                             onChange={(e) => setEditFormData({ ...editFormData, course: e.target.value })}
                           >
                             <option value="Python">Python</option>
                             <option value="MERN Stack">MERN Stack</option>
                             <option value="AI & ML">AI & ML</option>
-                          </select>
+                          </DarkSelect>
                         </div>
                       )}
 
                       {editFormData.assignedTo === 'student' && (
                         <div className="form-group fade-in">
                           <label className="form-label">Select Student</label>
-                          <select 
-                            className="form-control"
+                          <DarkSelect 
+                            
                             value={editFormData.studentId}
                             onChange={(e) => setEditFormData({ ...editFormData, studentId: e.target.value })}
                             required
@@ -536,7 +537,7 @@ export default function AdminTasks() {
                             {students.map(s => (
                               <option key={s._id} value={s._id}>{s.name} ({s.course})</option>
                             ))}
-                          </select>
+                          </DarkSelect>
                         </div>
                       )}
 

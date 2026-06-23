@@ -1,10 +1,77 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5051';
 const cleanBaseURL = API_BASE_URL.replace(/\/+$/, '');
+
+let verifiedBaseURL = null;
+let probePromise = null;
+
+const probePort = async (port) => {
+  try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 1000);
+    const response = await fetch(`http://localhost:${port}/api/health`, {
+      method: 'GET',
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    if (response.ok) {
+      const data = await response.json();
+      return data.status === 'ok';
+    }
+  } catch (err) {
+    // Ignore
+  }
+  return false;
+};
+
+const detectWorkingBackend = async () => {
+  if (verifiedBaseURL) return verifiedBaseURL;
+  if (probePromise) return probePromise;
+
+  probePromise = (async () => {
+    let currentPort = '5051';
+    try {
+      const parsed = new URL(cleanBaseURL);
+      currentPort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+    } catch (e) {
+      // Fallback
+    }
+
+    // 1. Probe the configured port first
+    const primaryOk = await probePort(currentPort);
+    if (primaryOk) {
+      verifiedBaseURL = cleanBaseURL;
+      return verifiedBaseURL;
+    }
+
+    // 2. If configured port is localhost, check other candidate ports
+    if (cleanBaseURL.includes('localhost') || cleanBaseURL.includes('127.0.0.1')) {
+      const candidatePorts = ['5051', '5050', '5052'].filter(p => p !== currentPort);
+      for (const port of candidatePorts) {
+        console.log(`[Backend Detector] Primary port ${currentPort} offline. Probing candidate port ${port}...`);
+        const candidateOk = await probePort(port);
+        if (candidateOk) {
+          const detectedURL = `http://localhost:${port}`;
+          console.warn(`[Backend Detector] Found active backend at ${detectedURL}. Updating API base URL.`);
+          verifiedBaseURL = detectedURL;
+          axiosInstance.defaults.baseURL = `${detectedURL}/api`;
+          return verifiedBaseURL;
+        }
+      }
+    }
+
+    // Fallback if nothing found
+    verifiedBaseURL = cleanBaseURL;
+    return verifiedBaseURL;
+  })();
+
+  return probePromise;
+};
 
 const axiosInstance = axios.create({
   baseURL: `${cleanBaseURL}/api`,
+  timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,7 +79,12 @@ const axiosInstance = axios.create({
 
 // Request interceptor to automatically add authorization token
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Automatically detect and update baseURL if using localhost
+    if (config.baseURL && (config.baseURL.includes('localhost') || config.baseURL.includes('127.0.0.1'))) {
+      const activeURL = await detectWorkingBackend();
+      config.baseURL = `${activeURL}/api`;
+    }
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -47,6 +119,16 @@ axiosInstance.interceptors.response.use(
     // Catches 404 errors and logs them cleanly
     if (error.response && error.response.status === 404) {
       console.warn(`[API 404] Resource not found: ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`);
+    }
+
+    // Catches Network and Timeout errors
+    if (!error.response) {
+      console.error(`[API Network Error] Unable to connect to backend: ${error.message}`);
+      if (error.code === 'ECONNABORTED') {
+        console.error('⚠️ Request timed out. The server took too long to respond.');
+      } else {
+        console.error('⚠️ Please ensure that your backend server is running and database is reachable.');
+      }
     }
 
     // Catches 401 errors

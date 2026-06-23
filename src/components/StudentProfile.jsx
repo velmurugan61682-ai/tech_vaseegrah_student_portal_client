@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -164,10 +165,10 @@ export default function StudentProfile() {
             
             <div className="form-group">
               <label className="form-label">Full Name</label>
-              <input 
+              <DarkInput 
                 type="text" 
                 name="name"
-                className="form-control" 
+                 
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -176,9 +177,9 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">Email Address</label>
-              <input 
+              <DarkInput 
                 type="email" 
-                className="form-control" 
+                 
                 value={user.email} 
                 disabled 
                 style={{ opacity: 0.6, cursor: 'not-allowed' }}
@@ -188,10 +189,10 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">Phone Number</label>
-              <input 
+              <DarkInput 
                 type="tel" 
                 name="phone"
-                className="form-control" 
+                 
                 value={formData.phone}
                 onChange={handleChange}
                 required
@@ -200,10 +201,10 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">College / Institution</label>
-              <input 
+              <DarkInput 
                 type="text" 
                 name="college"
-                className="form-control" 
+                 
                 value={formData.college}
                 onChange={handleChange}
                 required
@@ -212,10 +213,10 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">Department / Branch</label>
-              <input 
+              <DarkInput 
                 type="text" 
                 name="branch"
-                className="form-control" 
+                 
                 value={formData.branch}
                 onChange={handleChange}
                 required
@@ -224,10 +225,10 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">Batch Year</label>
-              <input 
+              <DarkInput 
                 type="text" 
                 name="batch"
-                className="form-control" 
+                 
                 value={formData.batch}
                 onChange={handleChange}
                 required
@@ -236,9 +237,9 @@ export default function StudentProfile() {
 
             <div className="form-group">
               <label className="form-label">Assigned Internship Course</label>
-              <input 
+              <DarkInput 
                 type="text" 
-                className="form-control" 
+                 
                 value={user.course} 
                 disabled 
                 style={{ opacity: 0.6, cursor: 'not-allowed' }}
@@ -282,10 +283,10 @@ export default function StudentProfile() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Current Password*</label>
-              <input 
+              <DarkInput 
                 type="password" 
                 name="currentPassword" 
-                className="form-control" 
+                 
                 value={passData.currentPassword}
                 onChange={handlePassChange}
                 required 
@@ -294,10 +295,10 @@ export default function StudentProfile() {
             
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">New Password*</label>
-              <input 
+              <DarkInput 
                 type="password" 
                 name="newPassword" 
-                className="form-control" 
+                 
                 placeholder="Min 6 characters"
                 value={passData.newPassword}
                 onChange={handlePassChange}
@@ -307,10 +308,10 @@ export default function StudentProfile() {
             
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Confirm New Password*</label>
-              <input 
+              <DarkInput 
                 type="password" 
                 name="confirmPassword" 
-                className="form-control" 
+                 
                 value={passData.confirmPassword}
                 onChange={handlePassChange}
                 required 

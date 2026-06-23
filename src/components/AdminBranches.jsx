@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as branchService from '../services/branchService';
@@ -238,9 +239,9 @@ export default function AdminBranches() {
             <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Branch Code/Name</label>
-                <input 
+                <DarkInput 
                   type="text" 
-                  className="form-control" 
+                   
                   required 
                   placeholder="e.g. CSE, IT, ECE"
                   value={addForm.branchName} 
@@ -281,9 +282,9 @@ export default function AdminBranches() {
             <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Branch Code/Name</label>
-                <input 
+                <DarkInput 
                   type="text" 
-                  className="form-control" 
+                   
                   required 
                   placeholder="e.g. CSE, IT, ECE"
                   value={editForm.branchName} 

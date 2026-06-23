@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -390,9 +391,9 @@ export default function StudentTasks() {
 
                     <div className="form-group">
                       <label className="form-label">GitHub / Project URL</label>
-                      <input
+                      <DarkInput
                         type="url"
-                        className="form-control"
+                        
                         placeholder="https://github.com/..."
                         value={githubLink}
                         onChange={(e) => setGithubLink(e.target.value)}

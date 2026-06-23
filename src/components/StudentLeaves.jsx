@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as leaveService from '../services/leaveService';
@@ -85,10 +86,10 @@ export default function StudentLeaves() {
             
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">From Date*</label>
-              <input 
+              <DarkInput 
                 type="date" 
                 name="fromDate" 
-                className="form-control" 
+                 
                 value={formData.fromDate}
                 onChange={handleInputChange}
                 required 
@@ -97,10 +98,10 @@ export default function StudentLeaves() {
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">To Date*</label>
-              <input 
+              <DarkInput 
                 type="date" 
                 name="toDate" 
-                className="form-control" 
+                 
                 value={formData.toDate}
                 onChange={handleInputChange}
                 required 

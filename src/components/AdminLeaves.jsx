@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as leaveService from '../services/leaveService';
@@ -112,9 +113,9 @@ export default function AdminLeaves() {
           
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Search Students</label>
-            <input 
-              type="text" 
-              className="form-control"
+            <DarkSearch 
+               
+              
               placeholder="Search by student name or email..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -123,8 +124,8 @@ export default function AdminLeaves() {
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '180px' }}>
             <label className="form-label">Review Status</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
@@ -132,7 +133,7 @@ export default function AdminLeaves() {
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <button type="submit" className="btn btn-secondary" style={{ height: '46px', padding: '0 25px' }}>
@@ -255,11 +256,11 @@ export default function AdminLeaves() {
               <div style={modalFormGridStyle}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Student Name</label>
-                  <input type="text" className="form-control" value={selectedLeave.studentId?.name || ''} disabled style={disabledInputStyle} />
+                  <DarkInput type="text"  value={selectedLeave.studentId?.name || ''} disabled style={disabledInputStyle} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Duration</label>
-                  <input type="text" className="form-control" value={`${new Date(selectedLeave.fromDate).toLocaleDateString()} to ${new Date(selectedLeave.toDate).toLocaleDateString()}`} disabled style={disabledInputStyle} />
+                  <DarkInput type="text"  value={`${new Date(selectedLeave.fromDate).toLocaleDateString()} to ${new Date(selectedLeave.toDate).toLocaleDateString()}`} disabled style={disabledInputStyle} />
                 </div>
               </div>
 
@@ -273,7 +274,7 @@ export default function AdminLeaves() {
                   <label className="form-label">Decision Action</label>
                   <div style={{ display: 'flex', gap: '15px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#fff', fontSize: '0.9rem' }}>
-                      <input 
+                      <DarkInput 
                         type="radio" 
                         name="reviewAction" 
                         value="Approved" 
@@ -283,7 +284,7 @@ export default function AdminLeaves() {
                       Approve Permission
                     </label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#fff', fontSize: '0.9rem' }}>
-                      <input 
+                      <DarkInput 
                         type="radio" 
                         name="reviewAction" 
                         value="Rejected" 

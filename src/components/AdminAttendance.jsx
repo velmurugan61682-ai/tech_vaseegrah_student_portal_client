@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -117,9 +118,9 @@ export default function AdminAttendance() {
       <div className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <label className="form-label" style={{ marginBottom: 0 }}>Select Date:</label>
-          <input 
+          <DarkInput 
             type="date" 
-            className="form-control" 
+             
             value={selectedDate} 
             onChange={(e) => setSelectedDate(e.target.value)}
             style={{ width: '180px' }}
@@ -187,11 +188,11 @@ export default function AdminAttendance() {
                     <td>{item.branch}</td>
                     <td>{item.batch}</td>
                     <td>
-                      <select
+                      <DarkSelect
                         disabled={updatingId === item._id}
                         value={item.status}
                         onChange={(e) => handleStatusUpdate(item._id, e.target.value)}
-                        className="form-control"
+                        
                         style={{ 
                           width: '125px', 
                           padding: '4px 8px', 
@@ -207,7 +208,7 @@ export default function AdminAttendance() {
                         <option value="present" style={{ background: '#222' }}>Present</option>
                         <option value="absent" style={{ background: '#222' }}>Absent</option>
                         <option value="late" style={{ background: '#222' }}>Late</option>
-                      </select>
+                      </DarkSelect>
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {item.markedAt 

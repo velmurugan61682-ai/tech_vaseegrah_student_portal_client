@@ -1,3 +1,4 @@
+import { DarkInput, DarkSelect, DarkSearch } from './DarkControls';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as paymentService from '../services/paymentService';
@@ -472,9 +473,9 @@ export default function AdminPayments() {
           
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Search Payments</label>
-            <input 
-              type="text" 
-              className="form-control"
+            <DarkSearch 
+               
+              
               placeholder="Search student, email, transaction..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -483,8 +484,8 @@ export default function AdminPayments() {
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '150px' }}>
             <label className="form-label">Internship Track</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.course}
               onChange={(e) => setFilters({ ...filters, course: e.target.value })}
             >
@@ -492,13 +493,13 @@ export default function AdminPayments() {
               <option value="MERN Stack">MERN Stack</option>
               <option value="Python">Python</option>
               <option value="AI & ML">AI & ML</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '130px' }}>
             <label className="form-label">Batch Year</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.batch}
               onChange={(e) => setFilters({ ...filters, batch: e.target.value })}
             >
@@ -506,13 +507,13 @@ export default function AdminPayments() {
               <option value="2023-25">2023-25</option>
               <option value="2024-26">2024-26</option>
               <option value="2025-27">2025-27</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <div className="form-group" style={{ marginBottom: 0, minWidth: '130px' }}>
             <label className="form-label">Payment Status</label>
-            <select 
-              className="form-control"
+            <DarkSelect 
+              
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
@@ -521,7 +522,7 @@ export default function AdminPayments() {
               <option value="Pending">Pending</option>
               <option value="Failed">Failed</option>
               <option value="Refunded">Refunded</option>
-            </select>
+            </DarkSelect>
           </div>
 
           <button type="submit" className="btn btn-secondary" style={{ height: '46px', padding: '0 25px' }}>
@@ -646,8 +647,8 @@ export default function AdminPayments() {
                 {/* Select Student */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Select Student*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.studentId}
                     onChange={(e) => handleStudentSelect(e.target.value)}
                     required
@@ -656,14 +657,14 @@ export default function AdminPayments() {
                     {students.map(s => (
                       <option key={s._id} value={s._id}>{s.name} ({s.course || 'Unassigned'})</option>
                     ))}
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Select Internship Program */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Internship Track*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.internshipId}
                     onChange={(e) => handleInternshipSelect(e.target.value)}
                     required
@@ -672,15 +673,15 @@ export default function AdminPayments() {
                     {internships.map(i => (
                       <option key={i._id} value={i._id}>{i.title} (₹{i.price})</option>
                     ))}
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Amount */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Amount (₹)*</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
                     required
@@ -691,9 +692,9 @@ export default function AdminPayments() {
                 {/* Discount */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Discount Amount (₹)</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.discount}
                     onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
                     min="0"
@@ -703,9 +704,9 @@ export default function AdminPayments() {
                 {/* Final Amount (Auto calculated) */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Final Paid Amount (₹)</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.finalAmount}
                     readOnly
                     style={{ background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--glass-border)', color: 'var(--color-success)', fontWeight: 'bold' }}
@@ -715,22 +716,22 @@ export default function AdminPayments() {
                 {/* Payment Type */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Type*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.paymentType}
                     onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
                     required
                   >
                     <option value="Online Payment">Online Payment</option>
                     <option value="Offline Payment">Offline Payment</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Payment Method */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Method*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     required
@@ -741,15 +742,15 @@ export default function AdminPayments() {
                     <option value="Net Banking">Net Banking</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Cash">Cash</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Transaction ID */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Transaction Reference ID</label>
-                  <input 
+                  <DarkInput 
                     type="text" 
-                    className="form-control"
+                    
                     placeholder="e.g. TXN987654321"
                     value={formData.transactionId}
                     onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
@@ -759,9 +760,9 @@ export default function AdminPayments() {
                 {/* Payment Date */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Date*</label>
-                  <input 
+                  <DarkInput 
                     type="date" 
-                    className="form-control"
+                    
                     value={formData.paymentDate}
                     onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
                     required
@@ -771,8 +772,8 @@ export default function AdminPayments() {
                 {/* Status */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Initial Status*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     required
@@ -781,7 +782,7 @@ export default function AdminPayments() {
                     <option value="Pending">Pending</option>
                     <option value="Failed">Failed</option>
                     <option value="Refunded">Refunded</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
               </div>
@@ -826,9 +827,9 @@ export default function AdminPayments() {
                 {/* Select Student (Disabled on Edit) */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Student Name</label>
-                  <input 
+                  <DarkInput 
                     type="text" 
-                    className="form-control" 
+                     
                     value={selectedPayment?.studentName || ''} 
                     disabled 
                     style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', color: 'var(--text-muted)' }}
@@ -838,8 +839,8 @@ export default function AdminPayments() {
                 {/* Select Internship Program */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Internship Track*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.internshipId}
                     onChange={(e) => handleInternshipSelect(e.target.value)}
                     required
@@ -848,15 +849,15 @@ export default function AdminPayments() {
                     {internships.map(i => (
                       <option key={i._id} value={i._id}>{i.title} (₹{i.price})</option>
                     ))}
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Amount */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Amount (₹)*</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
                     required
@@ -867,9 +868,9 @@ export default function AdminPayments() {
                 {/* Discount */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Discount Amount (₹)</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.discount}
                     onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
                     min="0"
@@ -879,9 +880,9 @@ export default function AdminPayments() {
                 {/* Final Amount */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Final Paid Amount (₹)</label>
-                  <input 
+                  <DarkInput 
                     type="number" 
-                    className="form-control"
+                    
                     value={formData.finalAmount}
                     readOnly
                     style={{ background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--glass-border)', color: 'var(--color-success)', fontWeight: 'bold' }}
@@ -891,22 +892,22 @@ export default function AdminPayments() {
                 {/* Payment Type */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Type*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.paymentType}
                     onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
                     required
                   >
                     <option value="Online Payment">Online Payment</option>
                     <option value="Offline Payment">Offline Payment</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Payment Method */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Method*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     required
@@ -917,15 +918,15 @@ export default function AdminPayments() {
                     <option value="Net Banking">Net Banking</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Cash">Cash</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
                 {/* Transaction ID */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Transaction Reference ID</label>
-                  <input 
+                  <DarkInput 
                     type="text" 
-                    className="form-control"
+                    
                     value={formData.transactionId}
                     onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
                   />
@@ -934,9 +935,9 @@ export default function AdminPayments() {
                 {/* Payment Date */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Date*</label>
-                  <input 
+                  <DarkInput 
                     type="date" 
-                    className="form-control"
+                    
                     value={formData.paymentDate}
                     onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
                     required
@@ -946,8 +947,8 @@ export default function AdminPayments() {
                 {/* Status */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Payment Status*</label>
-                  <select 
-                    className="form-control"
+                  <DarkSelect 
+                    
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     required
@@ -956,7 +957,7 @@ export default function AdminPayments() {
                     <option value="Pending">Pending</option>
                     <option value="Failed">Failed</option>
                     <option value="Refunded">Refunded</option>
-                  </select>
+                  </DarkSelect>
                 </div>
 
               </div>
